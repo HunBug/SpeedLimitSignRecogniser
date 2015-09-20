@@ -46,10 +46,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0\stage\lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\MinGW\lib&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.libs.324490584" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_core300.dll"/>
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_imgcodecs300.dll"/>
-								</option>
+								<option id="gnu.cpp.link.option.libs.324490584" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1941276420" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
