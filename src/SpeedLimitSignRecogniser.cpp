@@ -7,26 +7,16 @@
 //============================================================================
 
 #include <iostream>
-#include <string>
-#include <boost/foreach.hpp>
-#include <boost/filesystem.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/core.hpp>
 using namespace std;
 
 //TODO: replace absolute paths in the eclipse project configurations
 
 int main(int argc, char* argv[]) {
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
-	std::string s;
-	 int a[10];
-	 for(int i=0;i<10;i++)
-	 {
-	 a[i]=i+10;
-	 }
-	cin >> s;
-	 BOOST_FOREACH(int k, a)
-	 {
-		 cout<<"\t"<<k;
-	 }
-	 std::cout << argv[0] << " " << boost::filesystem::file_size(argv[0]) << '\n';
+	 cv::Mat im;
+	 im = cv::imread("c:\\Alom\\cica.png");
+	 cout<<"im height:" << im.size().height <<" width: " << im.size().width << std::endl;
 	return 0;
 }
