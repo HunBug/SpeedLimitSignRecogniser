@@ -28,6 +28,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
+								<option id="gnu.cpp.compiler.option.other.other.1797085878" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11 -fpermissive" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2050043109" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.debug.53189062" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.debug">
@@ -46,7 +47,12 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0\stage\lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\MinGW\lib&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.libs.324490584" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs"/>
+								<option id="gnu.cpp.link.option.libs.324490584" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_filesystem-mgw48-mt-d-1_59"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_core300.dll"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_imgcodecs300.dll"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_system-mgw48-mt-d-1_59"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1941276420" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -88,6 +94,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
+								<option id="gnu.cpp.compiler.option.other.other.1859314761" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11 -fpermissive" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.338067513" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.release.1572179674" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.release">
@@ -139,5 +146,12 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/SpeedLimitSignRecogniser"/>
+		</configuration>
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/SpeedLimitSignRecogniser"/>
+		</configuration>
+	</storageModule>
 </cproject>
