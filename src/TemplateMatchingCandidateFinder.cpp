@@ -6,6 +6,7 @@
  */
 
 #include "TemplateMatchingCandidateFinder.h"
+#include <opencv2/imgcodecs.hpp>
 
 namespace slsr {
 
@@ -22,7 +23,11 @@ std::vector<cv::Rect2i> TemplateMatchingCandidateFinder::getCandidates(
 		cv::Mat source) {
 	std::vector<cv::Rect2i> candidates;
 
+	//TODO read from resource or get an absolute path (from startup path)
+	cv::Mat signHeader = cv::imread("signHeader.png");
+	cv::Mat result;
 
+	fastMatchTemplate(source,signHeader,result,MAX_PYRAMID_LEVEL);
 	return candidates;
 }
 

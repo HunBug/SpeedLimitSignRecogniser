@@ -49,6 +49,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.324490584" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_filesystem-mgw48-mt-d-1_59"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_program_options-mgw48-mt-d-1_59"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_system-mgw48-mt-d-1_59"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_core300.dll"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_imgcodecs300.dll"/>
