@@ -15,8 +15,8 @@ namespace slsr {
 
 class ICandidateFinder {
 public:
-	ICandidateFinder();
-	virtual ~ICandidateFinder();
+	ICandidateFinder(){};
+	virtual ~ICandidateFinder(){};
 
 	virtual std::vector<cv::Rect2i> getCandidates(cv::Mat source) = 0;
 };
