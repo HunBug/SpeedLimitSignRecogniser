@@ -28,7 +28,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1797085878" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11 -fpermissive" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1797085878" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11 -fpermissive -static-libgcc -static-libstdc++" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2050043109" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.debug.53189062" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.debug">
@@ -38,6 +38,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
+								<option id="gnu.c.compiler.option.misc.other.189276305" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -static-libgcc -static-libstdc++" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1074785581" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug.1587573944" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug"/>
@@ -96,7 +97,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1859314761" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11 -fpermissive" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1859314761" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11 -fpermissive -static-libgcc -static-libstdc++" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.338067513" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.release.1572179674" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.release">
@@ -106,6 +107,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
+								<option id="gnu.c.compiler.option.misc.other.675267587" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -static-libgcc -static-libstdc++" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2050073563" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.release.765505969" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.release"/>

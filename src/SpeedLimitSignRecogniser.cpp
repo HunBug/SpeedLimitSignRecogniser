@@ -11,7 +11,12 @@
 #include <string>
 #include <boost/program_options.hpp>
 
+#include <opencv2/highgui.hpp>
+#include "TemplateMatchingCandidateFinder.h"
+#include "FileSource.h"
+
 namespace po = boost::program_options;
+using namespace slsr;
 
 int main(int argc, char* argv[]) {
 
@@ -37,6 +42,15 @@ int main(int argc, char* argv[]) {
 	}
 
 	isDirectory = (parametersMap.count("d") == 1);
+
+	FileSource fs;
+	fs.setSourcePath(path, isDirectory);
+	TemplateMatchingCandidateFinder tmf;
+	fs.next();
+	cv::Mat source = fs.getCurrent();
+	auto result = tmf.getCandidates(source);
+	cv::imwrite("result.png",result);
+
 
 	return 0;
 }
