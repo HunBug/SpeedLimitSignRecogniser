@@ -33,7 +33,7 @@ std::vector<cv::Rect2i> TemplateMatchingCandidateFinder::getCandidates(
 
 void TemplateMatchingCandidateFinder::fastMatchTemplate(cv::Mat& srca,
 		cv::Mat& srcb, cv::Mat& dst, int maxlevel) {
-	std::vector<cv::Mat> refs, tpls, results;
+	/*std::vector<cv::Mat> refs, tpls, results;
 
 	// Build Gaussian pyramid
 	cv::buildPyramid(srca, refs, maxlevel);
@@ -81,7 +81,7 @@ void TemplateMatchingCandidateFinder::fastMatchTemplate(cv::Mat& srca,
 		results.push_back(res);
 	}
 
-	res.copyTo(dst);
+	res.copyTo(dst);*/
 }
 
 } /* namespace slsr */

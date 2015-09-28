@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 	fs.next();
 	cv::Mat source = fs.getCurrent();
 	auto result = tmf.getCandidates(source);
-	cv::imwrite("result.png",result);
+	//cv::imwrite("result.png",result);
 
 
 	return 0;
