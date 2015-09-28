@@ -24,7 +24,7 @@ cv::Mat ColorSegmentation::getMask(cv::Mat source) {
 	cv::Mat hsvSource;
 	cv::cvtColor(source, hsvSource, CV_BGR2HSV);
 	std::vector<cv::Mat> hsvChannels;
-	cv::split(hsvSource, hsvChannels);
+	//cv::split(hsvSource, hsvChannels);
 
 
 }
