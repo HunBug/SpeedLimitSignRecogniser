@@ -16,15 +16,16 @@ void createImageBorder(cv::Mat source, cv::OutputArray destination,
 	if (matType == -1) {
 		matType = source.type();
 	}
-	destination = cv::Mat(source.size().height + 2 * borderSize,
-			source.size().width + 2 * borderSize, matType, initialValue);
+	cv::Mat(source.size().height + 2 * borderSize,
+			source.size().width + 2 * borderSize, matType, initialValue).copyTo(destination);
 }
 
 void removeImageBorder(cv::Mat source, cv::OutputArray destination,
 		unsigned int borderSize) {
-	destination = source(
-			cv::Rect(borderSize, borderSize, source.size().width - borderSize,
-					source.size().height - borderSize));
+	//TODO range verifications
+	source(
+			cv::Rect(borderSize, borderSize, source.size().width - 2*borderSize,
+					source.size().height - 2*borderSize)).copyTo(destination);
 }
 
 }/* ImagingTools */

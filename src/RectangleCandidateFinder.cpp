@@ -8,7 +8,9 @@
 #include "RectangleCandidateFinder.h"
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include "ImagingTools.h"
 
 namespace slsr {
@@ -45,14 +47,29 @@ std::vector<cv::Rect2i> RectangleCandidateFinder::getCandidates(
 	cv::Mat absGradientMapY;
 	convertScaleAbs(gradientMapX, absGradientMapX);
 	convertScaleAbs(gradientMapY, absGradientMapY);
+	cv::Mat voteMap(workImage.size(), cv::DataType<GradientType>::type, 0);
 	for (auto scale : this->m_scales) {
 		unsigned int width = (unsigned int) (this->m_rectangleAspectRation
 				* scale);
 		unsigned int height = (unsigned int) scale;
-		cv::Mat voteMap = buildVoteMap(width, height, gradientMapX,
+		cv::Mat currentVoteMap = buildVoteMap(width, height, gradientMapX,
 				gradientMapY, absGradientMapX, absGradientMapY);
+		voteMap += currentVoteMap;
 	}
 
+	//TODO remove
+	double min, max;
+	cv::Point min_loc, max_loc;
+	cv::minMaxLoc(voteMap, &min, &max, &min_loc, &max_loc);
+	cv::Point cornerVector(30/*signWidht*// 2, 40/*signHeight*// 2);
+	voteMap.convertTo(voteMap, CV_8UC1, 100);
+	cv::imwrite("voteMap.png", voteMap);
+	cv::addWeighted(workImage, 0.75, voteMap, 0.25, 0.0, workImage);
+	cv::rectangle(workImage, max_loc - cornerVector, max_loc + cornerVector,
+			cv::Scalar(255));
+	cv::imwrite("votes.png", workImage);
+
+	return std::vector<cv::Rect2i>();
 }
 
 void RectangleCandidateFinder::preprocess(cv::Mat source,
@@ -61,9 +78,11 @@ void RectangleCandidateFinder::preprocess(cv::Mat source,
 //TODO maybe more verifying is needed
 	if (source.channels() != 1) {
 		cvtColor(source, workImage, cv::COLOR_BGR2GRAY);
+	} else {
+		workImage = source;
 	}
 
-	destination = workImage;
+	workImage.copyTo(destination);
 }
 
 void RectangleCandidateFinder::calulateGradients(cv::Mat source,
@@ -75,8 +94,8 @@ void RectangleCandidateFinder::calulateGradients(cv::Mat source,
 	Sobel(source, workGradientMapX, CV_64F, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
 	Sobel(source, workGradientMapY, CV_64F, 0, 1, 3, 1, 0, cv::BORDER_DEFAULT);
 
-	gradientMapX = workGradientMapX;
-	gradientMapY = workGradientMapY;
+	workGradientMapX.copyTo(gradientMapX);
+	workGradientMapY.copyTo(gradientMapY);
 }
 
 cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
@@ -86,7 +105,7 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 	const unsigned int borderSize = std::max(width, height);
 	ImagingTools::createImageBorder(gradientMapX, workVotes, borderSize);
 
-	assert(gradientMapX.type() == cv::DataType<GradientType>::type);
+	//assert(gradientMapX.type() == cv::DataType<GradientType>::type);
 	assert(gradientMapX.size() == gradientMapY.size());
 	assert(gradientMapX.size() == absGradientMapX.size());
 	assert(gradientMapX.size() == absGradientMapY.size());
@@ -106,8 +125,8 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			if (approxMagnitude < MIN_GRADIENT_THRESHOLD) {
 				//continue
 			} else {
-				giveVotesatPoint(workVotes,borderSize, x, y, width, height, gradientX, gradientY,
-						absGradientX, absGradientY);
+				giveVotesatPoint(workVotes, borderSize, x, y, width, height,
+						gradientX, gradientY, absGradientX, absGradientY);
 			}
 		}
 	}
@@ -150,10 +169,10 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& votes,
 					votePointX + borderSize - distanceStep) += votingMagnitude;
 			votes.at<GradientType>(votePointY + borderSize,
 					votePointX + borderSize + votingDistance + distanceStep) -=
-							votingMagnitude;
+					votingMagnitude;
 			votes.at<GradientType>(votePointY + borderSize,
 					votePointX + borderSize - votingDistance - distanceStep) -=
-							votingMagnitude;
+					votingMagnitude;
 		}
 	} else {
 		//Draw vertical votes
