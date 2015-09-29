@@ -13,6 +13,10 @@
 #include <opencv2/imgcodecs.hpp>
 #include "ImagingTools.h"
 
+//debug
+#include <string>
+#include <boost/lexical_cast.hpp>
+
 namespace slsr {
 
 RectangleCandidateFinder::RectangleCandidateFinder(unsigned int width,
@@ -62,7 +66,7 @@ std::vector<cv::Rect2i> RectangleCandidateFinder::getCandidates(
 	cv::Point min_loc, max_loc;
 	cv::minMaxLoc(voteMap, &min, &max, &min_loc, &max_loc);
 	cv::Point cornerVector(30/*signWidht*// 2, 40/*signHeight*// 2);
-	voteMap.convertTo(voteMap, CV_8UC1, 255/max);
+	voteMap.convertTo(voteMap, CV_8UC1, 255 / max);
 	cv::imwrite("voteMap.png", voteMap);
 	cv::addWeighted(workImage, 0.75, voteMap, 0.25, 0.0, workImage);
 	cv::rectangle(workImage, max_loc - cornerVector, max_loc + cornerVector,
@@ -91,8 +95,10 @@ void RectangleCandidateFinder::calulateGradients(cv::Mat source,
 	cv::Mat workGradientMapX;
 	cv::Mat workGradientMapY;
 
-	Sobel(source, workGradientMapX, CV_64F, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
-	Sobel(source, workGradientMapY, CV_64F, 0, 1, 3, 1, 0, cv::BORDER_DEFAULT);
+	Sobel(source, workGradientMapX, cv::DataType<GradientType>::type, 1, 0, 3,
+			1, 0, cv::BORDER_DEFAULT);
+	Sobel(source, workGradientMapY, cv::DataType<GradientType>::type, 0, 1, 3,
+			1, 0, cv::BORDER_DEFAULT);
 
 	workGradientMapX.copyTo(gradientMapX);
 	workGradientMapY.copyTo(gradientMapY);
@@ -101,10 +107,19 @@ void RectangleCandidateFinder::calulateGradients(cv::Mat source,
 cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 		unsigned int height, cv::Mat gradientMapX, cv::Mat gradientMapY,
 		cv::Mat absGradientMapX, cv::Mat absGradientMapY) {
-	cv::Mat workVotes;
 	const unsigned int borderSize = std::max(width, height);
-	ImagingTools::createEmptyImageWithBorder(gradientMapX, workVotes, borderSize);
 
+	cv::Mat upVotes;
+	cv::Mat downVotes;
+	cv::Mat rightVotes;
+	cv::Mat leftVotes;
+	ImagingTools::createEmptyImageWithBorder(gradientMapX, upVotes, borderSize);
+	ImagingTools::createEmptyImageWithBorder(gradientMapX, downVotes,
+			borderSize);
+	ImagingTools::createEmptyImageWithBorder(gradientMapX, rightVotes,
+			borderSize);
+	ImagingTools::createEmptyImageWithBorder(gradientMapX, leftVotes,
+			borderSize);
 	//assert(gradientMapX.type() == cv::DataType<GradientType>::type);
 	assert(gradientMapX.size() == gradientMapY.size());
 	assert(gradientMapX.size() == absGradientMapX.size());
@@ -125,17 +140,60 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			if (approxMagnitude < MIN_GRADIENT_THRESHOLD) {
 				//continue
 			} else {
-				giveVotesatPoint(workVotes, borderSize, x, y, width, height,
-						gradientX, gradientY, absGradientX, absGradientY);
+				giveVotesatPoint(leftVotes, downVotes, rightVotes, upVotes,
+						borderSize, x, y, width, height, gradientX, gradientY,
+						absGradientX, absGradientY);
 			}
 		}
 	}
 
-	ImagingTools::removeImageBorder(workVotes, workVotes, borderSize);
-	return workVotes;
+	ImagingTools::removeImageBorder(downVotes, downVotes, borderSize);
+	ImagingTools::removeImageBorder(leftVotes, leftVotes, borderSize);
+	ImagingTools::removeImageBorder(upVotes, upVotes, borderSize);
+	ImagingTools::removeImageBorder(rightVotes, rightVotes, borderSize);
+
+	cv::Mat downMask = createMask(downVotes);
+	cv::Mat upMask = createMask(upVotes);
+	cv::Mat leftMask = createMask(leftVotes);
+	cv::Mat rightMask = createMask(rightVotes);
+
+	cv::Mat mask = downMask & upMask & leftMask & rightMask;
+	cv::Mat votes = downVotes + leftVotes + upVotes + rightVotes;
+	cv::imwrite(
+			(boost::lexical_cast<std::string>(width) + "votesdownMask.png").c_str(),
+			downMask);
+	cv::imwrite(
+			(boost::lexical_cast<std::string>(width) + "votesupMask.png").c_str(),
+			upMask);
+	cv::imwrite(
+			(boost::lexical_cast<std::string>(width) + "votesrightMask.png").c_str(),
+			rightMask);
+	cv::imwrite(
+			(boost::lexical_cast<std::string>(width) + "votesleftMask.png").c_str(),
+			leftMask);
+	cv::imwrite(
+			(boost::lexical_cast<std::string>(width) + "votesMask.png").c_str(),
+			mask);
+	mask.convertTo(mask, CV_8UC1);
+	cv::Mat maskedVotes;
+	votes.copyTo(maskedVotes, mask);
+
+	cv::Mat combined;
+	ImagingTools::normalizeToMax(maskedVotes, combined);
+	cv::imwrite(
+			(boost::lexical_cast<std::string>(width) + "votesCombined.png").c_str(),
+			combined);
+
+	cv::Mat maskedVotesAll = leftVotes+rightVotes+upVotes+downVotes;
+	ImagingTools::normalizeToMax(maskedVotesAll, combined);
+	cv::imwrite(
+				(boost::lexical_cast<std::string>(width) + "votesCombinedAll.png").c_str(),
+				combined);
+	return maskedVotes;
 }
 
-void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& votes,
+void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& leftVotes,
+		cv::Mat& downVotes, cv::Mat& rightVotes, cv::Mat& upVotes,
 		unsigned int borderSize, unsigned int x, unsigned int y,
 		unsigned int width, unsigned int height, GradientType gradientX,
 		GradientType gradientY, GradientType absGradientX,
@@ -154,9 +212,11 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& votes,
 	//TODO voting line with angle is needed?
 	//TODO adding votes as a prepared cv::Mat line
 	if (!isHorizontalEdge) {
-		 double votingDistance = static_cast<GradientType>(height) / 2;
+		double votingDistance = static_cast<GradientType>(height) / 2;
 		int votePointX = x;
-		int votePointY = (gradientX > 0) ? y - (height / 2) : y + (height / 2);
+		bool isUp = (gradientX > 0);
+		int votePointY = isUp ? y - (height / 2) : y + (height / 2);
+		auto& votes = isUp ? upVotes : downVotes;
 		//Draw horizontal votes
 		for (int distanceStep = 0; distanceStep < votingDistance;
 				distanceStep++) {
@@ -174,8 +234,10 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& votes,
 	} else {
 		//Draw vertical votes
 		double votingDistance = static_cast<GradientType>(width / 2);
-		int votePointX = (gradientY < 0) ? x - (width / 2) : x + (width / 2);
+		bool isLeft = gradientY < 0;
+		int votePointX = isLeft ? x - (width / 2) : x + (width / 2);
 		int votePointY = y;
+		auto& votes = isLeft ? leftVotes : rightVotes;
 		for (int distanceStep = 0; distanceStep < votingDistance;
 				distanceStep++) {
 			votes.at<GradientType>(votePointY + borderSize + distanceStep,
@@ -190,6 +252,18 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& votes,
 					votePointX + borderSize) -= votingMagnitude;
 		}
 	}
+}
+
+cv::Mat RectangleCandidateFinder::createMask(cv::Mat source) {
+	cv::Mat mask;
+	cv::threshold(source, mask, MIN_VOTE_THRESHOLD, 255,
+			cv::ThresholdTypes::THRESH_BINARY);
+	int erosion_size = 10;
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+			cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+			cv::Point(erosion_size, erosion_size));
+	cv::dilate(mask, mask, element);
+	return mask;
 }
 
 } /* namespace slsr */

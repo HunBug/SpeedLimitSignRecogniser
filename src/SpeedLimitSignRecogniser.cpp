@@ -53,7 +53,9 @@ int main(int argc, char* argv[]) {
 
 	NoiseRemover nr;
 	cv::Mat normalised = nr.normalise(source);
-	RectangleCandidateFinder rcf(40, 50);
+	std::vector<double> scales{30,35,40,45,50,60,70 };
+	//std::vector<double> scales{50};
+	RectangleCandidateFinder rcf(40.0/50.0, scales);
 	rcf.getCandidates(normalised);
 	return 0;
 }

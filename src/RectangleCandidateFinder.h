@@ -14,8 +14,9 @@ namespace slsr {
 
 class RectangleCandidateFinder: public ICandidateFinder {
 public:
-	typedef double GradientType;
+	typedef float GradientType;
 	static constexpr GradientType MIN_GRADIENT_THRESHOLD = 200;
+	static constexpr GradientType MIN_VOTE_THRESHOLD = 1000;
 	RectangleCandidateFinder(unsigned int width, unsigned int height);
 	RectangleCandidateFinder(double rectangleSpectRation,
 			std::vector<double> scales);
@@ -31,10 +32,12 @@ private:
 	cv::Mat buildVoteMap(unsigned int width, unsigned int height,
 			cv::Mat gradientMapX, cv::Mat gradientMapY, cv::Mat absGradientMapX,
 			cv::Mat absGradientMapY);
-	void giveVotesatPoint(cv::Mat& votes, unsigned int borderSize,
+	void giveVotesatPoint(cv::Mat& leftVotes, cv::Mat& downVotes,
+			cv::Mat& rightVotes, cv::Mat& upVotes, unsigned int borderSize,
 			unsigned int x, unsigned int y, unsigned int width,
 			unsigned int height, GradientType gradientX, GradientType gradientY,
 			GradientType absGradientX, GradientType absGradientY);
+	cv::Mat createMask(cv::Mat source);
 };
 
 } /* namespace slsr */
