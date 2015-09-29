@@ -14,9 +14,11 @@ namespace slsr {
 namespace ImagingTools {
 
 void createEmptyImageWithBorder(cv::Mat source, cv::OutputArray destination,
-		unsigned int borderSize, int matType = -1, const cv::Scalar& initialValue = 0);
+		unsigned int borderSize, int matType = -1,
+		const cv::Scalar& initialValue = 0);
 void removeImageBorder(cv::Mat source, cv::OutputArray destination,
 		unsigned int borderSize);
+void normalizeToMax(cv::Mat source, cv::OutputArray destination);
 
 }/* ImagingTools */
 } /* namespace slsr */
