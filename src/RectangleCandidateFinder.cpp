@@ -120,6 +120,8 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			borderSize);
 	ImagingTools::createEmptyImageWithBorder(gradientMapX, leftVotes,
 			borderSize);
+	cv::Mat gradientDebugImage(gradientMapX.size(), gradientMapX.type(),
+			cv::Scalar(0.0));
 	//assert(gradientMapX.type() == cv::DataType<GradientType>::type);
 	assert(gradientMapX.size() == gradientMapY.size());
 	assert(gradientMapX.size() == absGradientMapX.size());
@@ -138,14 +140,31 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			unsigned char absGradientY = pAbsGradientY[x];
 			float approxMagnitude = absGradientX + absGradientY;
 			if (approxMagnitude < MIN_GRADIENT_THRESHOLD) {
-				//continue
+				//If no edge then a little down-vote
+				downVotes.at<GradientType>(y + height / 2 + borderSize,
+						x + borderSize) -= 2 * MIN_GRADIENT_THRESHOLD;
+				upVotes.at<GradientType>(y - height / 2 + borderSize,
+						x + borderSize) -= 2 * MIN_GRADIENT_THRESHOLD;
+				leftVotes.at<GradientType>(y + borderSize,
+						x - width / 2 + borderSize) -= 2
+						* MIN_GRADIENT_THRESHOLD;
+				rightVotes.at<GradientType>(y + borderSize,
+						x + width / 2 + borderSize) -= 2
+						* MIN_GRADIENT_THRESHOLD;
 			} else {
 				giveVotesatPoint(leftVotes, downVotes, rightVotes, upVotes,
 						borderSize, x, y, width, height, gradientX, gradientY,
-						absGradientX, absGradientY);
+						absGradientX, absGradientY, false);
+				giveVotesatPoint(leftVotes, downVotes, rightVotes, upVotes,
+						borderSize, x, y, width, height, gradientX, gradientY,
+						absGradientX, absGradientY, true);
+				gradientDebugImage.at<GradientType>(y, x) = approxMagnitude;
 			}
 		}
 	}
+
+	ImagingTools::normalizeToMax(gradientDebugImage, gradientDebugImage);
+	cv::imwrite("gradients.png", gradientDebugImage);
 
 	ImagingTools::removeImageBorder(downVotes, downVotes, borderSize);
 	ImagingTools::removeImageBorder(leftVotes, leftVotes, borderSize);
@@ -184,11 +203,11 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			(boost::lexical_cast<std::string>(width) + "votesCombined.png").c_str(),
 			combined);
 
-	cv::Mat maskedVotesAll = leftVotes+rightVotes+upVotes+downVotes;
+	cv::Mat maskedVotesAll = leftVotes + rightVotes + upVotes + downVotes;
 	ImagingTools::normalizeToMax(maskedVotesAll, combined);
 	cv::imwrite(
-				(boost::lexical_cast<std::string>(width) + "votesCombinedAll.png").c_str(),
-				combined);
+			(boost::lexical_cast<std::string>(width) + "votesCombinedAll.png").c_str(),
+			combined);
 	return maskedVotes;
 }
 
@@ -197,7 +216,7 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& leftVotes,
 		unsigned int borderSize, unsigned int x, unsigned int y,
 		unsigned int width, unsigned int height, GradientType gradientX,
 		GradientType gradientY, GradientType absGradientX,
-		GradientType absGradientY) {
+		GradientType absGradientY, bool gradientReverseDirection) {
 
 	bool isHorizontalEdge = absGradientX > absGradientY;
 	//Can be calculated a precise magnitude if needed
@@ -215,7 +234,9 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& leftVotes,
 		double votingDistance = static_cast<GradientType>(height) / 2;
 		int votePointX = x;
 		bool isUp = (gradientX > 0);
-		int votePointY = isUp ? y - (height / 2) : y + (height / 2);
+		int votePointY =
+				(isUp ^ gradientReverseDirection) ?
+						y - (height / 2) : y + (height / 2);
 		auto& votes = isUp ? upVotes : downVotes;
 		//Draw horizontal votes
 		for (int distanceStep = 0; distanceStep < votingDistance;
@@ -235,7 +256,9 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& leftVotes,
 		//Draw vertical votes
 		double votingDistance = static_cast<GradientType>(width / 2);
 		bool isLeft = gradientY < 0;
-		int votePointX = isLeft ? x - (width / 2) : x + (width / 2);
+		int votePointX =
+				(isLeft ^ gradientReverseDirection) ?
+						x - (width / 2) : x + (width / 2);
 		int votePointY = y;
 		auto& votes = isLeft ? leftVotes : rightVotes;
 		for (int distanceStep = 0; distanceStep < votingDistance;
