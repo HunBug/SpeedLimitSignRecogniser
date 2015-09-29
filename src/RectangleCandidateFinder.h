@@ -15,7 +15,7 @@ namespace slsr {
 class RectangleCandidateFinder: public ICandidateFinder {
 public:
 	typedef double GradientType;
-	static constexpr double MIN_GRADIENT_THRESHOLD = 200;
+	static constexpr GradientType MIN_GRADIENT_THRESHOLD = 200;
 	RectangleCandidateFinder(unsigned int width, unsigned int height);
 	RectangleCandidateFinder(double rectangleSpectRation,
 			std::vector<double> scales);

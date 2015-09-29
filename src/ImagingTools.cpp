@@ -11,7 +11,7 @@ namespace slsr {
 
 namespace ImagingTools {
 
-void createImageBorder(cv::Mat source, cv::OutputArray destination,
+void createEmptyImageWithBorder(cv::Mat source, cv::OutputArray destination,
 		unsigned int borderSize, int matType, const cv::Scalar& initialValue) {
 	if (matType == -1) {
 		matType = source.type();

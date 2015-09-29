@@ -62,7 +62,7 @@ std::vector<cv::Rect2i> RectangleCandidateFinder::getCandidates(
 	cv::Point min_loc, max_loc;
 	cv::minMaxLoc(voteMap, &min, &max, &min_loc, &max_loc);
 	cv::Point cornerVector(30/*signWidht*// 2, 40/*signHeight*// 2);
-	voteMap.convertTo(voteMap, CV_8UC1, 100);
+	voteMap.convertTo(voteMap, CV_8UC1, 255/max);
 	cv::imwrite("voteMap.png", voteMap);
 	cv::addWeighted(workImage, 0.75, voteMap, 0.25, 0.0, workImage);
 	cv::rectangle(workImage, max_loc - cornerVector, max_loc + cornerVector,
@@ -103,7 +103,7 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 		cv::Mat absGradientMapX, cv::Mat absGradientMapY) {
 	cv::Mat workVotes;
 	const unsigned int borderSize = std::max(width, height);
-	ImagingTools::createImageBorder(gradientMapX, workVotes, borderSize);
+	ImagingTools::createEmptyImageWithBorder(gradientMapX, workVotes, borderSize);
 
 	//assert(gradientMapX.type() == cv::DataType<GradientType>::type);
 	assert(gradientMapX.size() == gradientMapY.size());
@@ -113,14 +113,14 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			y < static_cast<unsigned int>(gradientMapX.size().height); ++y) {
 		GradientType* pGradientX = gradientMapX.ptr<GradientType>(y);
 		GradientType* pGradientY = gradientMapY.ptr<GradientType>(y);
-		GradientType* pAbsGradientX = absGradientMapX.ptr<GradientType>(y);
-		GradientType* pAbsGradientY = absGradientMapY.ptr<GradientType>(y);
+		unsigned char* pAbsGradientX = absGradientMapX.ptr<unsigned char>(y);
+		unsigned char* pAbsGradientY = absGradientMapY.ptr<unsigned char>(y);
 		for (unsigned int x = 0;
 				x < static_cast<unsigned int>(gradientMapX.size().width); ++x) {
 			GradientType gradientX = pGradientX[x];
 			GradientType gradientY = pGradientY[x];
-			GradientType absGradientX = pAbsGradientX[x];
-			GradientType absGradientY = pAbsGradientY[x];
+			unsigned char absGradientX = pAbsGradientX[x];
+			unsigned char absGradientY = pAbsGradientY[x];
 			float approxMagnitude = absGradientX + absGradientY;
 			if (approxMagnitude < MIN_GRADIENT_THRESHOLD) {
 				//continue
@@ -154,12 +154,9 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& votes,
 	//TODO voting line with angle is needed?
 	//TODO adding votes as a prepared cv::Mat line
 	if (!isHorizontalEdge) {
-		int votePointX;
-		int votePointY;
-		double votingDistance;
-		votingDistance = static_cast<GradientType>(height) / 2;
-		votePointX = x;
-		votePointY = (gradientX > 0) ? y - (height / 2) : y + (height / 2);
+		 double votingDistance = static_cast<GradientType>(height) / 2;
+		int votePointX = x;
+		int votePointY = (gradientX > 0) ? y - (height / 2) : y + (height / 2);
 		//Draw horizontal votes
 		for (int distanceStep = 0; distanceStep < votingDistance;
 				distanceStep++) {
@@ -176,12 +173,9 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& votes,
 		}
 	} else {
 		//Draw vertical votes
-		int votePointX;
-		int votePointY;
-		double votingDistance;
-		votingDistance = static_cast<GradientType>(width / 2);
-		votePointX = (gradientY < 0) ? x - (width / 2) : x + (width / 2);
-		votePointY = y;
+		double votingDistance = static_cast<GradientType>(width / 2);
+		int votePointX = (gradientY < 0) ? x - (width / 2) : x + (width / 2);
+		int votePointY = y;
 		for (int distanceStep = 0; distanceStep < votingDistance;
 				distanceStep++) {
 			votes.at<GradientType>(votePointY + borderSize + distanceStep,
