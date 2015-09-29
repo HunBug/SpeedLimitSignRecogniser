@@ -15,6 +15,7 @@
 #include "NoiseRemover.h"
 #include "RectangleCandidateFinder.h"
 #include "FileSource.h"
+#include "TemplateMatchingDetector.h"
 
 namespace po = boost::program_options;
 using namespace slsr;
@@ -53,9 +54,11 @@ int main(int argc, char* argv[]) {
 
 	NoiseRemover nr;
 	cv::Mat normalised = nr.normalise(source);
-	std::vector<double> scales{30,35,40,45,50,60,70 };
+	std::vector<double> scales { 30, 35, 40, 45, 50, 60, 70 };
 	//std::vector<double> scales{50};
-	RectangleCandidateFinder rcf(40.0/50.0, scales);
-	rcf.getCandidates(normalised);
+	RectangleCandidateFinder rcf(40.0 / 50.0, scales);
+	auto candidates = rcf.getCandidates(normalised);
+	TemplateMatchingDetector tmd;
+	tmd.getSigns(normalised, candidates);
 	return 0;
 }
