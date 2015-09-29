@@ -18,7 +18,7 @@ public:
 	ICandidateFinder(){};
 	virtual ~ICandidateFinder(){};
 
-	virtual std::vector<cv::Rect2i> getCandidates(cv::Mat source) = 0;
+	virtual cv::Mat getCandidates(cv::Mat source) = 0;
 };
 
 } /* namespace slsr */

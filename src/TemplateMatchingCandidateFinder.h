@@ -21,7 +21,7 @@ public:
 	TemplateMatchingCandidateFinder();
 	virtual ~TemplateMatchingCandidateFinder();
 
-	virtual std::vector<cv::Rect2i> getCandidates(cv::Mat source) override;
+	virtual cv::Mat getCandidates(cv::Mat source) override;
 private:
 	//This algorithm was copied from http://opencv-code.com/tutorials/fast-template-matching-with-image-pyramid/
 	void fastMatchTemplate(cv::Mat& srca, cv::Mat& srcb, cv::Mat& dst, int maxlevel);

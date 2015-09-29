@@ -36,7 +36,7 @@ RectangleCandidateFinder::~RectangleCandidateFinder() {
 	// TODO Auto-generated destructor stub
 }
 
-std::vector<cv::Rect2i> RectangleCandidateFinder::getCandidates(
+cv::Mat RectangleCandidateFinder::getCandidates(
 		cv::Mat source) {
 
 	cv::Mat workImage;
@@ -61,19 +61,16 @@ std::vector<cv::Rect2i> RectangleCandidateFinder::getCandidates(
 		voteMap += currentVoteMap;
 	}
 
-	//TODO remove
-	double min, max;
-	cv::Point min_loc, max_loc;
-	cv::minMaxLoc(voteMap, &min, &max, &min_loc, &max_loc);
-	cv::Point cornerVector(30/*signWidht*// 2, 40/*signHeight*// 2);
-	voteMap.convertTo(voteMap, CV_8UC1, 255 / max);
-	cv::imwrite("voteMap.png", voteMap);
-	cv::addWeighted(workImage, 0.75, voteMap, 0.25, 0.0, workImage);
+	/*cv::Mat debugVoteImage;
+	ImagingTools::normalizeToMax(voteMap, debugVoteImage);
+	cv::Point cornerVector(30/ 2, 40/ 2);
+	cv::imwrite("voteMap.png", debugVoteImage);
+	cv::addWeighted(workImage, 0.75, debugVoteImage, 0.25, 0.0, workImage);
 	cv::rectangle(workImage, max_loc - cornerVector, max_loc + cornerVector,
 			cv::Scalar(255));
-	cv::imwrite("votes.png", workImage);
+	cv::imwrite("votes.png", workImage);*/
 
-	return std::vector<cv::Rect2i>();
+	return voteMap;
 }
 
 void RectangleCandidateFinder::preprocess(cv::Mat source,
@@ -120,8 +117,8 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			borderSize);
 	ImagingTools::createEmptyImageWithBorder(gradientMapX, leftVotes,
 			borderSize);
-	cv::Mat gradientDebugImage(gradientMapX.size(), gradientMapX.type(),
-			cv::Scalar(0.0));
+	//cv::Mat gradientDebugImage(gradientMapX.size(), gradientMapX.type(),
+	//		cv::Scalar(0.0));
 	//assert(gradientMapX.type() == cv::DataType<GradientType>::type);
 	assert(gradientMapX.size() == gradientMapY.size());
 	assert(gradientMapX.size() == absGradientMapX.size());
@@ -158,13 +155,13 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 				giveVotesatPoint(leftVotes, downVotes, rightVotes, upVotes,
 						borderSize, x, y, width, height, gradientX, gradientY,
 						absGradientX, absGradientY, true);
-				gradientDebugImage.at<GradientType>(y, x) = approxMagnitude;
+				//gradientDebugImage.at<GradientType>(y, x) = approxMagnitude;
 			}
 		}
 	}
 
-	ImagingTools::normalizeToMax(gradientDebugImage, gradientDebugImage);
-	cv::imwrite("gradients.png", gradientDebugImage);
+	//ImagingTools::normalizeToMax(gradientDebugImage, gradientDebugImage);
+	//cv::imwrite("gradients.png", gradientDebugImage);
 
 	ImagingTools::removeImageBorder(downVotes, downVotes, borderSize);
 	ImagingTools::removeImageBorder(leftVotes, leftVotes, borderSize);
@@ -178,7 +175,7 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 
 	cv::Mat mask = downMask & upMask & leftMask & rightMask;
 	cv::Mat votes = downVotes + leftVotes + upVotes + rightVotes;
-	cv::imwrite(
+	/*cv::imwrite(
 			(boost::lexical_cast<std::string>(width) + "votesdownMask.png").c_str(),
 			downMask);
 	cv::imwrite(
@@ -192,12 +189,12 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			leftMask);
 	cv::imwrite(
 			(boost::lexical_cast<std::string>(width) + "votesMask.png").c_str(),
-			mask);
+			mask);*/
 	mask.convertTo(mask, CV_8UC1);
 	cv::Mat maskedVotes;
 	votes.copyTo(maskedVotes, mask);
 
-	cv::Mat combined;
+	/*cv::Mat combined;
 	ImagingTools::normalizeToMax(maskedVotes, combined);
 	cv::imwrite(
 			(boost::lexical_cast<std::string>(width) + "votesCombined.png").c_str(),
@@ -207,7 +204,7 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 	ImagingTools::normalizeToMax(maskedVotesAll, combined);
 	cv::imwrite(
 			(boost::lexical_cast<std::string>(width) + "votesCombinedAll.png").c_str(),
-			combined);
+			combined);*/
 	return maskedVotes;
 }
 

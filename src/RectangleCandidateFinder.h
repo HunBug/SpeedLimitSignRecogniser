@@ -17,11 +17,13 @@ public:
 	typedef float GradientType;
 	static constexpr GradientType MIN_GRADIENT_THRESHOLD = 50;
 	static constexpr GradientType MIN_VOTE_THRESHOLD = 1000;
+
 	RectangleCandidateFinder(unsigned int width, unsigned int height);
 	RectangleCandidateFinder(double rectangleSpectRation,
 			std::vector<double> scales);
+
 	virtual ~RectangleCandidateFinder();
-	virtual std::vector<cv::Rect2i> getCandidates(cv::Mat source) override;
+	virtual cv::Mat getCandidates(cv::Mat source) override;
 private:
 	double m_rectangleAspectRation;
 	std::vector<double> m_scales;

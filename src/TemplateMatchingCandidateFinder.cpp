@@ -19,16 +19,14 @@ TemplateMatchingCandidateFinder::~TemplateMatchingCandidateFinder() {
 	// TODO Auto-generated destructor stub
 }
 
-std::vector<cv::Rect2i> TemplateMatchingCandidateFinder::getCandidates(
+cv::Mat TemplateMatchingCandidateFinder::getCandidates(
 		cv::Mat source) {
-	std::vector<cv::Rect2i> candidates;
-
 	//TODO read from resource or get an absolute path (from startup path)
 	cv::Mat signHeader = cv::imread("signHeader.png");
 	cv::Mat result;
 
 	fastMatchTemplate(source,signHeader,result,MAX_PYRAMID_LEVEL);
-	return candidates;
+	return result;
 }
 
 void TemplateMatchingCandidateFinder::fastMatchTemplate(cv::Mat& srca,
