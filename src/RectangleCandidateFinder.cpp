@@ -174,6 +174,7 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 	cv::Mat rightMask = createMask(rightVotes);
 
 	cv::Mat mask = downMask & upMask & leftMask & rightMask;
+	//TODO return aggreagted or separated votes? Return rectangle sizes too.
 	cv::Mat votes = downVotes + leftVotes + upVotes + rightVotes;
 	/*cv::imwrite(
 			(boost::lexical_cast<std::string>(width) + "votesdownMask.png").c_str(),
