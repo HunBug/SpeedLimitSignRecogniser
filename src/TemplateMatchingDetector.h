@@ -9,6 +9,7 @@
 #define TEMPLATEMATCHINGDETECTOR_H_
 
 #include "IDetector.h"
+#include <string>
 
 namespace slsr {
 
@@ -29,6 +30,8 @@ private:
 
 	bool tryNextCandidate(cv::Mat source, cv::Mat& candidateMap,
 			cv::Rect2i& sign);
+
+	std::string _debug_iterationprefix;
 };
 
 } /* namespace slsr */
