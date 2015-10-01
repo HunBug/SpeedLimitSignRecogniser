@@ -8,6 +8,8 @@
 #include "TemplateMatchingDetector.h"
 #include <cassert>
 #include <algorithm>
+#include <limits>
+#include <iostream>
 #include <boost/lexical_cast.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -48,15 +50,16 @@ cv::Mat& TemplateMatchingDetector::getSignTemplate() {
 	if (instance.empty()) {
 		//TODO check if file exists
 		instance = cv::imread("speedLimitText.png");
-		cv::resize(instance, instance, cv::Size(100, 125));
 	}
 	return instance;
 }
 
 std::vector<double> TemplateMatchingDetector::getTemplateScales() {
-	//static std::vector<double> scales { 1.0, .9, .8, 0.7, .6, .5, .4, .3, .25,
-	//		.2 };
-	static std::vector<double> scales { 0.20 };
+	//IMPORTANT use it in increasing order because the template
+	//			matching algorithm assumes this! (Prefer bigger scale
+	//			with same matching-value)
+	static std::vector<double> scales { .30, .35, .4, .35, .5, .55, .75, .85,
+			1.0 };
 	return scales;
 }
 
@@ -71,69 +74,87 @@ bool TemplateMatchingDetector::tryNextCandidate(cv::Mat source,
 		return false;
 	}
 
-	cv::Mat currentTemplate = getSignTemplate();
-	//TODO Cache templates
-	//cv::resize(currentTemplate, currentTemplate, cv::Size(), 0.5, 0.5,
-	//		CV_INTER_LANCZOS4);
 	//TODO adjust this size
-	cv::Size roiSize(currentTemplate.size().width * 0.3,
-			currentTemplate.size().height * 0.3);
-	int roiX = std::max(0, maxVote_loc.x - roiSize.width);
-	int roiY = std::max(0, maxVote_loc.y - roiSize.height);
-	int roiRight = std::min(source.size().width, maxVote_loc.x + roiSize.width);
-	int roiBottom = std::min(source.size().height,
-			maxVote_loc.y + roiSize.height);
+	cv::Size roiSize(getSignTemplate().size().width * 0.5,
+			getSignTemplate().size().height * 0.5);
+	int roiX = maxVote_loc.x - roiSize.width;
+	int roiY = maxVote_loc.y - roiSize.height;
+	int roiRight = maxVote_loc.x + roiSize.width;
+	int roiBottom = maxVote_loc.y + roiSize.height;
+	if (roiX < 0) {
+		roiRight -= roiX;
+		roiX -= roiX; //=0;
+	}
+	if (roiY < 0) {
+		roiBottom -= roiY;
+		roiY -= roiY; //=0;
+	}
+	if (roiRight >= source.size().width) {
+		int correction = roiRight - source.size().width;
+		roiRight -= correction;
+		roiX -= correction; //=0;
+	}
+	if (roiBottom >= source.size().height) {
+		int correction = roiBottom - source.size().height;
+		roiBottom -= correction;
+		roiY -= correction; //=0;
+	}
 	cv::Mat candidateRegion = source(
 			cv::Rect(roiX, roiY, roiRight - roiX, roiBottom - roiY));
-	//MAX LOC ellenõrzése
-	cv::Mat templateMatchingResult;
+
+	double totalMaxTemplateValue = 0;
+	cv::Point totalMaxTemplatePosition;
+	cv::Mat debugMaxMatchingValues;
+	double scale = 1.0;
 	for (auto templateScale : getTemplateScales()) {
 		cv::Mat signTemplate;
-		cv::resize(currentTemplate, signTemplate, cv::Size(), templateScale,
-				templateScale, cv::INTER_LANCZOS4);
+		cv::resize(getSignTemplate(), signTemplate, cv::Size(), templateScale,
+				templateScale, cv::INTER_CUBIC);
 		cv::Mat result;
 		cv::matchTemplate(candidateRegion, signTemplate, result,
-				CV_TM_CCORR_NORMED);
-		if (templateMatchingResult.empty()) {
-			templateMatchingResult = result;
-		} else {
-			//Assume that templateMarching always the smaller
-			assert(result.size().width >= templateMatchingResult.size().width);
-			assert(
-					result.size().height
-							>= templateMatchingResult.size().height);
-			cv::Mat newTemplateMatchingResult(result.size(), result.type(),
-					0.0);
-			newTemplateMatchingResult(
-					cv::Rect(0, 0, templateMatchingResult.size().width,
-							templateMatchingResult.size().height)) =
-					templateMatchingResult;
-			cv::max(result, newTemplateMatchingResult,
-					newTemplateMatchingResult);
-			templateMatchingResult = newTemplateMatchingResult;
+				CV_TM_CCOEFF_NORMED);
+		double maxTemplateValue;
+		double minTemplateValue;
+		cv::Point minTemplatePosition;
+		cv::Point maxTemplatePosition;
+		cv::minMaxLoc(result, &minTemplateValue, &maxTemplateValue,
+				&minTemplatePosition, &maxTemplatePosition);
+		//Assuming increasing template scales
+		if (totalMaxTemplateValue <= maxTemplateValue) {
+			totalMaxTemplatePosition = maxTemplatePosition;
+			totalMaxTemplateValue = maxTemplateValue;
+			debugMaxMatchingValues = result;
+			scale = templateScale;
+//			imwrite(
+//					_debug_iterationprefix + "template_s" + boost::lexical_cast
+//							< std::string > (scale) + ".png", signTemplate);
 		}
-		imwrite(_debug_iterationprefix + "candidateTemplate.png", signTemplate);
 	}
+	cv::Point rectanlgeCornerShit(getSignTemplate().size().width * scale,
+			getSignTemplate().size().height * scale);
+	cv::rectangle(candidateMap, maxVote_loc - rectanlgeCornerShit,
+			maxVote_loc + rectanlgeCornerShit, cv::Scalar(0), CV_FILLED);
 
-	cv::Point minTemplate_loc, maxTemplate_loc;
-	double minTemplate, maxTemplate;
-	cv::minMaxLoc(templateMatchingResult, &minTemplate, &maxTemplate,
-			&minTemplate_loc, &maxTemplate_loc);
-	cv::Point rectanlgeSize = roiSize;
+	//DEBUG
 	cv::Point shift(roiX, roiY);
 	cv::Mat sc = source.clone();
-	cv::rectangle(sc, shift + maxTemplate_loc,
-			shift + maxTemplate_loc + rectanlgeSize, cv::Scalar(255));
-	cv::rectangle(candidateMap, maxVote_loc, maxVote_loc + rectanlgeSize,
-			cv::Scalar(0), CV_FILLED);
-
-	imwrite(_debug_iterationprefix + "candidateRegion.png", candidateRegion);
-	imwrite(_debug_iterationprefix + "candidateMap.png", candidateMap / 255);
+	cv::Scalar isFoundColor(0, 0, 255);
+	if (totalMaxTemplateValue > MIN_TEMPLATE_MATCH_VALUE) {
+		isFoundColor = cv::Scalar(0, 255, 0);
+	}
+	cv::rectangle(sc, shift + totalMaxTemplatePosition,
+			shift + totalMaxTemplatePosition + rectanlgeCornerShit,
+			isFoundColor);
+	/*imwrite(_debug_iterationprefix + "candidateRegion.png", candidateRegion);
+	 imwrite(
+	 _debug_iterationprefix + "templateMap" + boost::lexical_cast
+	 < std::string
+	 > ((int) round(totalMaxTemplateValue * 10000)) + ".png",
+	 debugMaxMatchingValues * 200);*/
 	imwrite(
-			_debug_iterationprefix + "templateMap" + boost::lexical_cast
-					< std::string > ((int) round(maxTemplate * 10000)) + ".png",
-			templateMatchingResult * 255);
-	imwrite(_debug_iterationprefix + "sign.png", sc);
+			boost::lexical_cast < std::string
+					> ((int) round(totalMaxTemplateValue * 10000)) + "result_i"
+							+ _debug_iterationprefix + ".png", sc);
 //MAX LOC környékén nullázni a candidate map-ot
 	return true;
 }

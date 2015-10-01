@@ -15,8 +15,9 @@ namespace slsr {
 
 class TemplateMatchingDetector: public IDetector {
 public:
-	static const unsigned char MAX_CANDIDATES_TO_TRY = 20;
+	static const unsigned char MAX_CANDIDATES_TO_TRY = 10;
 	static const constexpr double MIN_CANDIDATE_VOTES = 2000.0;
+	static const constexpr double MIN_TEMPLATE_MATCH_VALUE = .3;
 
 	TemplateMatchingDetector();
 	virtual ~TemplateMatchingDetector();
