@@ -16,7 +16,7 @@ class RawPixelFeatureExtractor: public IFeatureExtractor {
 public:
 	RawPixelFeatureExtractor();
 	virtual ~RawPixelFeatureExtractor();
-	virtual std::vector<double> extractFeatures(cv::Mat source) override;
+	virtual std::vector<float> extractFeatures(cv::Mat source) override;
 
 	bool isConvertToGrayPixles() const {
 		return m_convertToGrayPixles;

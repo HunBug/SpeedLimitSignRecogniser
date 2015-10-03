@@ -14,7 +14,8 @@ namespace slsr {
 
 class NearestNeighbourRecogniser: public IRecogniser {
 public:
-	NearestNeighbourRecogniser();
+	NearestNeighbourRecogniser(
+			std::shared_ptr<IFeatureExtractor> featureExtractor);
 	virtual ~NearestNeighbourRecogniser();
 
 	virtual std::string recognise(cv::Mat fullImage, cv::Rect signPosition)

@@ -14,10 +14,13 @@ namespace slsr {
 
 class IDetector {
 public:
-	IDetector() {};
-	virtual ~IDetector() {};
+	IDetector() {
+	}
+	virtual ~IDetector() {
+	}
 
-	virtual std::vector<cv::Rect2i> getSigns(cv::Mat source, cv::Mat candidateMap) =0;
+	virtual std::vector<cv::Rect2i> getSigns(cv::Mat source,
+			cv::Mat candidateMap) =0;
 };
 
 } /* namespace slsr */

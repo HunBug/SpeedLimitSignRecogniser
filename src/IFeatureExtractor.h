@@ -19,7 +19,7 @@ public:
 	}
 	virtual ~IFeatureExtractor() {
 	}
-	virtual std::vector<double> extractFeatures(cv::Mat source) = 0;
+	virtual std::vector<float> extractFeatures(cv::Mat source) = 0;
 };
 
 } /* namespace slsr */
