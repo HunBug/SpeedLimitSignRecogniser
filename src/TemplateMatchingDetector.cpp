@@ -45,7 +45,7 @@ std::vector<cv::Rect2i> TemplateMatchingDetector::getSigns(cv::Mat source,
 	return signs;
 }
 
-cv::Mat& TemplateMatchingDetector::getSignTemplate() {
+cv::Mat TemplateMatchingDetector::getSignTemplate() {
 	static cv::Mat instance;
 	if (instance.empty()) {
 		//TODO check if file exists
@@ -65,7 +65,7 @@ std::vector<double> TemplateMatchingDetector::getTemplateScales() {
 
 //TODO gradient space matching
 bool TemplateMatchingDetector::tryNextCandidate(cv::Mat source,
-		cv::Mat& candidateMap, cv::Rect2i& sign) {
+		cv::Mat candidateMap, cv::Rect2i& sign) {
 	double minVote;
 	double maxVote;
 	cv::Point minVote_loc, maxVote_loc;

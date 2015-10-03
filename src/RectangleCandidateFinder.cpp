@@ -209,8 +209,8 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 	return maskedVotes;
 }
 
-void RectangleCandidateFinder::giveVotesatPoint(cv::Mat& leftVotes,
-		cv::Mat& downVotes, cv::Mat& rightVotes, cv::Mat& upVotes,
+void RectangleCandidateFinder::giveVotesatPoint(cv::Mat leftVotes,
+		cv::Mat downVotes, cv::Mat rightVotes, cv::Mat upVotes,
 		unsigned int borderSize, unsigned int x, unsigned int y,
 		unsigned int width, unsigned int height, GradientType gradientX,
 		GradientType gradientY, GradientType absGradientX,

@@ -34,8 +34,8 @@ private:
 	cv::Mat buildVoteMap(unsigned int width, unsigned int height,
 			cv::Mat gradientMapX, cv::Mat gradientMapY, cv::Mat absGradientMapX,
 			cv::Mat absGradientMapY);
-	void giveVotesatPoint(cv::Mat& leftVotes, cv::Mat& downVotes,
-			cv::Mat& rightVotes, cv::Mat& upVotes, unsigned int borderSize,
+	void giveVotesatPoint(cv::Mat leftVotes, cv::Mat downVotes,
+			cv::Mat rightVotes, cv::Mat upVotes, unsigned int borderSize,
 			unsigned int x, unsigned int y, unsigned int width,
 			unsigned int height, GradientType gradientX, GradientType gradientY,
 			GradientType absGradientX, GradientType absGradientY, bool gradientReverseDirection);

@@ -24,7 +24,7 @@ public:
 	virtual cv::Mat getCandidates(cv::Mat source) override;
 private:
 	//This algorithm was copied from http://opencv-code.com/tutorials/fast-template-matching-with-image-pyramid/
-	void fastMatchTemplate(cv::Mat& srca, cv::Mat& srcb, cv::Mat& dst, int maxlevel);
+	void fastMatchTemplate(cv::Mat srca, cv::Mat srcb, cv::Mat dst, int maxlevel);
 };
 
 } /* namespace slsr */

@@ -29,8 +29,8 @@ cv::Mat TemplateMatchingCandidateFinder::getCandidates(
 	return result;
 }
 
-void TemplateMatchingCandidateFinder::fastMatchTemplate(cv::Mat& srca,
-		cv::Mat& srcb, cv::Mat& dst, int maxlevel) {
+void TemplateMatchingCandidateFinder::fastMatchTemplate(cv::Mat srca,
+		cv::Mat srcb, cv::Mat dst, int maxlevel) {
 	/*std::vector<cv::Mat> refs, tpls, results;
 
 	// Build Gaussian pyramid
