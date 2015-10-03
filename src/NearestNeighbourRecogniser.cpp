@@ -27,14 +27,18 @@ std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 		cv::Rect signPosition) {
 
 	cv::Mat sign = fullImage(signPosition);
+	cv::normalize(sign, sign, 0, 255, cv::NORM_MINMAX);
 	auto classifier = cv::ml::KNearest::create();
 
 	cv::Mat s25 = cv::imread("25.png", cv::IMREAD_GRAYSCALE);
-	cv::resize(s25, s25, cv::Size(25, 15));
+	cv::resize(s25, s25, cv::Size(25, 15), cv::INTER_CUBIC);
+	cv::normalize(s25, s25, 0, 255, cv::NORM_MINMAX);
 	cv::Mat s30 = cv::imread("30.png", cv::IMREAD_GRAYSCALE);
-	cv::resize(s30, s30, cv::Size(25, 15));
+	cv::resize(s30, s30, cv::Size(25, 15), cv::INTER_CUBIC);
+	cv::normalize(s30, s30, 0, 255, cv::NORM_MINMAX);
 	cv::Mat s35 = cv::imread("35.png", cv::IMREAD_GRAYSCALE);
-	cv::resize(s35, s35, cv::Size(25, 15));
+	cv::resize(s35, s35, cv::Size(25, 15), cv::INTER_CUBIC);
+	cv::normalize(s35, s35, 0, 255, cv::NORM_MINMAX);
 	auto feature25 = getFeatureExtractor()->extractFeatures(s25);
 	auto feature30 = getFeatureExtractor()->extractFeatures(s30);
 	auto feature35 = getFeatureExtractor()->extractFeatures(s35);

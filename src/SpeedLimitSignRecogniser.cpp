@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
 	RectangleCandidateFinder rcf(40.0 / 50.0, scales);
 	TemplateMatchingDetector tmd;
 
-	cv::Mat sample = cv::imread("sample.png", cv::IMREAD_GRAYSCALE);
-	cv::resize(sample, sample, cv::Size(25, 15));
+	cv::Mat sample = cv::imread("sample2.png", cv::IMREAD_GRAYSCALE);
+	cv::resize(sample, sample, cv::Size(25, 15), cv::INTER_CUBIC);
 	std::shared_ptr < IFeatureExtractor > fe(new RawPixelFeatureExtractor());
 	NearestNeighbourRecogniser nnr(fe);
 	nnr.recognise(sample, cv::Rect(cv::Point(0, 0), sample.size()));
@@ -65,6 +65,10 @@ int main(int argc, char* argv[]) {
 	fs.next();
 	cv::Mat source = fs.getCurrent();
 	cv::Mat normalised = nr.normalise(source);
+	//TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//		RETURN RECTANGLE CENTER AND SIZE TOO
+	//		AND USE IT IN THE NUMBER DETECTOR TOO
+	//		not just the temlapte matching position
 	auto candidates = rcf.getCandidates(normalised);
 	tmd.getSigns(normalised, candidates);
 
