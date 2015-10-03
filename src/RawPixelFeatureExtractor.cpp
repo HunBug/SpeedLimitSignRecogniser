@@ -6,10 +6,12 @@
  */
 
 #include "RawPixelFeatureExtractor.h"
+#include <opencv2/imgproc.hpp>
 
 namespace slsr {
 
-RawPixelFeatureExtractor::RawPixelFeatureExtractor() {
+RawPixelFeatureExtractor::RawPixelFeatureExtractor() :
+		m_convertToGrayPixles(true) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -19,8 +21,14 @@ RawPixelFeatureExtractor::~RawPixelFeatureExtractor() {
 }
 
 std::vector<double> RawPixelFeatureExtractor::extractFeatures(cv::Mat source) {
-
-	return std::vector<double>();
+	cv::Mat workImage = source;
+	std::vector<double> features;
+	if (m_convertToGrayPixles) {
+		cv::cvtColor(workImage, workImage, CV_BGR2GRAY);
+	}
+	workImage.convertTo(workImage, cv::DataType<double>::type, 1, 0);
+	workImage.copyTo(features);
+	return features;
 }
 
 } /* namespace slsr */

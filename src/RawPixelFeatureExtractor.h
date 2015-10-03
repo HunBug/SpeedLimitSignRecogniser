@@ -17,6 +17,17 @@ public:
 	RawPixelFeatureExtractor();
 	virtual ~RawPixelFeatureExtractor();
 	virtual std::vector<double> extractFeatures(cv::Mat source) override;
+
+	bool isConvertToGrayPixles() const {
+		return m_convertToGrayPixles;
+	}
+
+	void setConvertToGrayPixles(bool convertToGrayPixles) {
+		m_convertToGrayPixles = convertToGrayPixles;
+	}
+
+private:
+	bool m_convertToGrayPixles;
 };
 
 } /* namespace slsr */
