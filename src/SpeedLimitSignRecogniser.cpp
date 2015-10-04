@@ -53,24 +53,21 @@ int main(int argc, char* argv[]) {
 	std::vector<double> scales { 30, 35, 40, 45, 50, 60, 70 };
 	RectangleCandidateFinder rcf(40.0 / 50.0, scales);
 	TemplateMatchingDetector tmd;
-
-	cv::Mat sample = cv::imread("sample2.png", cv::IMREAD_GRAYSCALE);
-	cv::resize(sample, sample, cv::Size(25, 15), cv::INTER_CUBIC);
 	std::shared_ptr < IFeatureExtractor > fe(new RawPixelFeatureExtractor());
 	NearestNeighbourRecogniser nnr(fe);
-	nnr.recognise(sample, cv::Rect(cv::Point(0, 0), sample.size()));
 
-	return 0;
 	//Do recognition
 	fs.next();
 	cv::Mat source = fs.getCurrent();
 	cv::Mat normalised = nr.normalise(source);
-	//TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//		RETURN RECTANGLE CENTER AND SIZE TOO
-	//		AND USE IT IN THE NUMBER DETECTOR TOO
-	//		not just the temlapte matching position
 	auto candidates = rcf.getCandidates(normalised);
-	tmd.getSigns(normalised, candidates);
+	auto signs = tmd.getSigns(normalised, candidates);
+	for (auto sign : signs) {
+		std::string recognised = nnr.recognise(normalised, sign);
+		if (!recognised.empty()) {
+			std::cout << "result: " << recognised << std::endl;
+		}
+	}
 
 	return 0;
 }

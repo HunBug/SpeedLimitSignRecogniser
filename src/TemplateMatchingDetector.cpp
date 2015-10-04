@@ -29,16 +29,14 @@ std::vector<cv::Rect2i> TemplateMatchingDetector::getSigns(cv::Mat source,
 		cv::Mat candidateMap) {
 	std::vector < cv::Rect2i > signs;
 	cv::Mat workCandidateMap = candidateMap;
-	for (auto candidateIteration = 0;
-			candidateIteration < MAX_CANDIDATES_TO_TRY; ++candidateIteration) {
+	for (auto candidateIteration = 0; candidateIteration < CANDIDATES_TO_TRY;
+			++candidateIteration) {
 		cv::Rect2i sign;
 		_debug_iterationprefix = boost::lexical_cast < std::string
 				> (candidateIteration);
 		bool signFound = tryNextCandidate(source, workCandidateMap, sign);
 		if (signFound) {
 			signs.push_back(sign);
-		} else {
-			break;
 		}
 	}
 
@@ -125,9 +123,6 @@ bool TemplateMatchingDetector::tryNextCandidate(cv::Mat source,
 			totalMaxTemplateValue = maxTemplateValue;
 			debugMaxMatchingValues = result;
 			scale = templateScale;
-//			imwrite(
-//					_debug_iterationprefix + "template_s" + boost::lexical_cast
-//							< std::string > (scale) + ".png", signTemplate);
 		}
 	}
 	cv::Point rectanlgeCornerShit(getSignTemplate().size().width * scale,
@@ -135,28 +130,31 @@ bool TemplateMatchingDetector::tryNextCandidate(cv::Mat source,
 	cv::rectangle(candidateMap, maxVote_loc - rectanlgeCornerShit,
 			maxVote_loc + rectanlgeCornerShit, cv::Scalar(0), CV_FILLED);
 
-	//DEBUG
-	cv::Point shift(roiX, roiY);
-	cv::Mat sc = source.clone();
-	cv::Scalar isFoundColor(0, 0, 255);
-	if (totalMaxTemplateValue > MIN_TEMPLATE_MATCH_VALUE) {
-		isFoundColor = cv::Scalar(0, 255, 0);
+	bool signFound = totalMaxTemplateValue > MIN_TEMPLATE_MATCH_VALUE;
+	if (signFound) {
+		sign = cv::Rect(roiX + totalMaxTemplatePosition.x,
+				roiY + totalMaxTemplatePosition.y, rectanlgeCornerShit.x,
+				rectanlgeCornerShit.y * 2.2);
 	}
-	cv::rectangle(sc, shift + totalMaxTemplatePosition,
-			shift + totalMaxTemplatePosition + rectanlgeCornerShit,
-			isFoundColor);
-	/*imwrite(_debug_iterationprefix + "candidateRegion.png", candidateRegion);
+
+	//DEBUG
+	/*cv::Point shift(roiX, roiY);
+	 cv::Mat sc = source.clone();
+	 cv::Scalar isFoundColor(0, 0, 255);
+	 if (signFound) {
+	 isFoundColor = cv::Scalar(0, 255, 0);
+	 }
+	 if (signFound) {
+	 cv::rectangle(sc, sign, isFoundColor);
+	 cv::circle(sc, maxVote_loc, 3, cv::Scalar(255));
 	 imwrite(
-	 _debug_iterationprefix + "templateMap" + boost::lexical_cast
-	 < std::string
-	 > ((int) round(totalMaxTemplateValue * 10000)) + ".png",
-	 debugMaxMatchingValues * 200);*/
-	imwrite(
-			boost::lexical_cast < std::string
-					> ((int) round(totalMaxTemplateValue * 10000)) + "result_i"
-							+ _debug_iterationprefix + ".png", sc);
-//MAX LOC környékén nullázni a candidate map-ot
-	return true;
+	 boost::lexical_cast < std::string
+	 > ((int) round(totalMaxTemplateValue * 10000))
+	 + "result_i" + _debug_iterationprefix + ".png",
+	 sc);
+	 }*/
+	//DEBUG END
+	return signFound;
 }
 
 } /* namespace slsr */

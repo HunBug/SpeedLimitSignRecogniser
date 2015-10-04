@@ -9,6 +9,8 @@
 #define NEARESTNEIGHBOURRECOGNISER_H_
 
 #include "IRecogniser.h"
+#include <boost/optional.hpp>
+#include <opencv2/ml.hpp>
 
 namespace slsr {
 
@@ -20,6 +22,11 @@ public:
 
 	virtual std::string recognise(cv::Mat fullImage, cv::Rect signPosition)
 			override;
+private:
+	boost::optional<cv::Ptr<cv::ml::KNearest>> m_classifier;
+
+	cv::Ptr<cv::ml::KNearest> getClassifier();
+	bool getNumbersRoi(cv::Mat source, cv::Rect& numbersRoi);
 };
 
 } /* namespace slsr */
