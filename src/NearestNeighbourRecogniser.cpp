@@ -62,10 +62,25 @@ cv::Ptr<cv::ml::KNearest> NearestNeighbourRecogniser::getClassifier() {
 		cv::Mat s35 = cv::imread("35.png", cv::IMREAD_GRAYSCALE);
 		cv::resize(s35, s35, cv::Size(25, 15), cv::INTER_CUBIC);
 		cv::normalize(s35, s35, 0, 255, cv::NORM_MINMAX);
+
+		cv::Mat s45 = cv::imread("45.png", cv::IMREAD_GRAYSCALE);
+		cv::resize(s45, s45, cv::Size(25, 15), cv::INTER_CUBIC);
+		cv::normalize(s45, s45, 0, 255, cv::NORM_MINMAX);
+		cv::Mat s55 = cv::imread("55.png", cv::IMREAD_GRAYSCALE);
+		cv::resize(s55, s55, cv::Size(25, 15), cv::INTER_CUBIC);
+		cv::normalize(s55, s55, 0, 255, cv::NORM_MINMAX);
+		cv::Mat s65 = cv::imread("65.png", cv::IMREAD_GRAYSCALE);
+		cv::resize(s65, s65, cv::Size(25, 15), cv::INTER_CUBIC);
+		cv::normalize(s65, s65, 0, 255, cv::NORM_MINMAX);
+
 		auto feature25 = getFeatureExtractor()->extractFeatures(s25);
 		auto feature30 = getFeatureExtractor()->extractFeatures(s30);
 		auto feature35 = getFeatureExtractor()->extractFeatures(s35);
-		cv::Mat trainingResponses = (cv::Mat_<float>(3, 1) << 25, 30, 35);
+		auto feature45 = getFeatureExtractor()->extractFeatures(s45);
+		auto feature55 = getFeatureExtractor()->extractFeatures(s55);
+		auto feature65 = getFeatureExtractor()->extractFeatures(s65);
+		cv::Mat trainingResponses =
+				(cv::Mat_<float>(6, 1) << 25, 30, 35, 45, 55, 65);
 		cv::Mat trainingSamples(0, feature25.size(), CV_32F);
 		auto a = cv::Mat(feature25);
 		cv::transpose(a, a);
@@ -74,6 +89,16 @@ cv::Ptr<cv::ml::KNearest> NearestNeighbourRecogniser::getClassifier() {
 		cv::transpose(a, a);
 		trainingSamples.push_back(a);
 		a = cv::Mat(feature35);
+		cv::transpose(a, a);
+		trainingSamples.push_back(a);
+
+		a = cv::Mat(feature45);
+		cv::transpose(a, a);
+		trainingSamples.push_back(a);
+		a = cv::Mat(feature55);
+		cv::transpose(a, a);
+		trainingSamples.push_back(a);
+		a = cv::Mat(feature65);
 		cv::transpose(a, a);
 		trainingSamples.push_back(a);
 		auto trainingData = cv::ml::TrainData::create(trainingSamples,
