@@ -18,14 +18,21 @@ class FileSource {
 public:
 	FileSource();
 
-	void setSourcePath(std::string path, bool isDirectory=false);
+	void setSourcePath(std::string path, bool isDirectory = false);
 
 	bool next();
 	cv::Mat getCurrent();
 
 	virtual ~FileSource();
+
+	std::string getCurrentFileName() const;
+	const std::string& getCurrentPath() const {
+		return m_currentPath;
+	}
+
 private:
 	cv::Mat m_current;
+	std::string m_currentPath;
 	std::queue<std::string> m_filePaths;
 };
 

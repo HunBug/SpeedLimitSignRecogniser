@@ -9,6 +9,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <iostream>
 
 namespace slsr {
 
@@ -18,21 +19,22 @@ FileSource::FileSource() {
 }
 
 void FileSource::setSourcePath(std::string path, bool isDirectory) {
-	const std::string imageExtension = "png";
-	std::queue<std::string> newFilePaths;
+	const std::string imageExtension = ".png";
+	std::queue < std::string > newFilePaths;
 
-	if(isDirectory) {
+	if (isDirectory) {
 		boost::filesystem::directory_iterator directoryEnd;
-		for( boost::filesystem::directory_iterator file( path ); file != directoryEnd; ++file )
-		{
-		    if( !boost::filesystem::is_regular_file( file->status() ) ) continue;
-		    auto fileExtension = file->path().extension();
-		    if(!boost::iequals(imageExtension, fileExtension)) continue;
+		for (boost::filesystem::directory_iterator file(path);
+				file != directoryEnd; ++file) {
+			if (!boost::filesystem::is_regular_file(file->status()))
+				continue;
+			auto fileExtension = file->path().extension().string();
+			if (!boost::iequals(imageExtension, fileExtension))
+				continue;
 
-		    newFilePaths.push(file->path().string());
+			newFilePaths.push(file->path().string());
 		}
-	}
-	else{
+	} else {
 		newFilePaths.push(path);
 	}
 
@@ -41,12 +43,12 @@ void FileSource::setSourcePath(std::string path, bool isDirectory) {
 }
 
 bool FileSource::next() {
-	if(m_filePaths.empty()){
+	if (m_filePaths.empty()) {
 		return false;
 	}
 
-	auto& path = m_filePaths.front();
-	m_current = cv::imread(path.c_str());
+	m_currentPath = m_filePaths.front();
+	m_current = cv::imread(getCurrentPath().c_str());
 	m_filePaths.pop();
 	return true;
 }
@@ -57,6 +59,11 @@ cv::Mat FileSource::getCurrent() {
 
 FileSource::~FileSource() {
 	// TODO Auto-generated destructor stub
+}
+
+std::string FileSource::getCurrentFileName() const {
+	boost::filesystem::path path(getCurrentPath());
+	return path.stem().string();
 }
 
 } /* namespace slsr */

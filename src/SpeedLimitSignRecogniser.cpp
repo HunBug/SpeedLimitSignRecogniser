@@ -57,22 +57,25 @@ int main(int argc, char* argv[]) {
 	NearestNeighbourRecogniser nnr(fe);
 
 	//Do recognition
-	fs.next();
-	cv::Mat source = fs.getCurrent();
-	cv::Mat normalised = nr.normalise(source);
-	auto candidates = rcf.getCandidates(normalised);
-	auto signs = tmd.getSigns(normalised, candidates);
-	cv::Mat resultImage = source.clone();
-	for (auto sign : signs) {
-		std::string recognised = nnr.recognise(normalised, sign);
-		cv::Scalar textColor(0, 255, 0);
-		if (recognised.empty()) {
-			recognised = "NR";
-			textColor = cv::Scalar(0, 0, 255);
+	while (fs.next()) {
+		std::cout << "Processing: " << fs.getCurrentFileName() << " path: "
+				<< fs.getCurrentPath() << std::endl;
+		cv::Mat source = fs.getCurrent();
+		cv::Mat normalised = nr.normalise(source);
+		auto candidates = rcf.getCandidates(normalised);
+		auto signs = tmd.getSigns(normalised, candidates);
+		cv::Mat resultImage = source.clone();
+		for (auto sign : signs) {
+			std::string recognised = nnr.recognise(normalised, sign);
+			cv::Scalar textColor(0, 255, 0);
+			if (recognised.empty()) {
+				recognised = "NR";
+				textColor = cv::Scalar(0, 0, 255);
+			}
+			cv::putText(resultImage, recognised, cv::Point(sign.x, sign.y),
+					cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, textColor);
 		}
-		cv::putText(resultImage, recognised, cv::Point(sign.x, sign.y),
-				cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, textColor);
+		cv::imwrite(fs.getCurrentFileName() + "_res.png", resultImage);
 	}
-	cv::imwrite("result.png", resultImage);
 	return 0;
 }
