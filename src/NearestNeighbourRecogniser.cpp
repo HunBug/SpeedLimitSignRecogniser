@@ -32,18 +32,24 @@ std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 	if (!roiFound) {
 		return "";
 	}
+	cv::Mat debugIm = sign.clone();
+	cv::rectangle(debugIm, numbersRoi, cv::Scalar(255));
+	cv::imwrite("numbersRect.png", debugIm);
 
-	cv::rectangle(sign, numbersRoi, cv::Scalar(255));
-	cv::imwrite("numbers.png", sign);
-	cv::normalize(sign, sign, 0, 255, cv::NORM_MINMAX);
+	cv::Mat numbers = sign(numbersRoi);
+//	cv::cvtColor(numbers, numbers, CV_BGR2GRAY);
+	cv::resize(numbers, numbers, cv::Size(25, 15), cv::INTER_CUBIC);
+	cv::normalize(numbers, numbers, 0, 255, cv::NORM_MINMAX);
 	auto classifier = getClassifier();
-	cv::Mat result;
-	classifier->findNearest(getFeatureExtractor()->extractFeatures(sign),
+	std::vector<float> result;
+	classifier->findNearest(getFeatureExtractor()->extractFeatures(numbers),
 			classifier->getDefaultK(), result);
-	return boost::lexical_cast < std::string > (result.at<float>(1));
+	return boost::lexical_cast < std::string > (result[0]);
 }
 
 cv::Ptr<cv::ml::KNearest> NearestNeighbourRecogniser::getClassifier() {
+	//Not well docuomented, sample can be found at:
+	//http://stackoverflow.com/questions/28035484/opencv-3-knn-implementation
 	//TODO this is only a Q&D prototype
 	if (!m_classifier.is_initialized()) {
 		auto classifier = cv::ml::KNearest::create();
@@ -87,7 +93,9 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 		cv::Rect& numbersRoi) {
 	cv::Mat workImage;
 	cv::threshold(source, workImage, 1, 255, cv::THRESH_OTSU);
+	cv::imwrite("numbersThreshold.png", workImage);
 	workImage = 255 - workImage;
+
 	//Changes workimage!
 	std::vector < std::vector<cv::Point> > contours;
 	cv::findContours(workImage, contours, CV_RETR_EXTERNAL,
@@ -106,30 +114,32 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 		//cv::drawContours(workImage, contours, contourIndex, cv::Scalar(0),-1);
 	}
 	bool isRoiFound = candidateIndices.size() >= 2;
-	while (candidateIndices.size() > 2) {
-		//find the weakest
-		int weakestIndex = 0;
-		int mostTop = source.size().height;
-		for (auto index : candidateIndices) {
-			auto boundingBox = cv::boundingRect(contours[index]);
-			auto top = boundingBox.y;
-			if (top < mostTop) {
-				mostTop = top;
-				weakestIndex = index;
+	if (isRoiFound) {
+		while (candidateIndices.size() > 2) {
+			//find the weakest
+			int weakestIndex = 0;
+			int mostTop = source.size().height;
+			for (auto index : candidateIndices) {
+				auto boundingBox = cv::boundingRect(contours[index]);
+				auto top = boundingBox.y;
+				if (top < mostTop) {
+					mostTop = top;
+					weakestIndex = index;
+				}
 			}
-		}
 
-		candidateIndices.erase(candidateIndices.begin() + weakestIndex);
+			candidateIndices.erase(candidateIndices.begin() + weakestIndex);
+		}
+		assert(candidateIndices.size() == 2);
+		auto boundingBox1 = cv::boundingRect(contours[candidateIndices[0]]);
+		auto boundingBox2 = cv::boundingRect(contours[candidateIndices[1]]);
+		numbersRoi.x = std::min(boundingBox1.x, boundingBox2.x);
+		numbersRoi.y = std::min(boundingBox1.y, boundingBox2.y);
+		numbersRoi.width = std::max(boundingBox1.x + boundingBox1.width,
+				boundingBox2.x + boundingBox2.width) - numbersRoi.x;
+		numbersRoi.height = std::max(boundingBox1.y + boundingBox1.height,
+				boundingBox2.y + boundingBox2.height) - numbersRoi.y;
 	}
-	assert(candidateIndices.size() == 2);
-	auto boundingBox1 = cv::boundingRect(contours[candidateIndices[0]]);
-	auto boundingBox2 = cv::boundingRect(contours[candidateIndices[1]]);
-	numbersRoi.x = std::min(boundingBox1.x, boundingBox2.x);
-	numbersRoi.y = std::min(boundingBox1.y, boundingBox2.y);
-	numbersRoi.width = std::max(boundingBox1.x + boundingBox1.width,
-			boundingBox2.x + boundingBox2.width) - numbersRoi.x;
-	numbersRoi.height = std::max(boundingBox1.y + boundingBox1.height,
-			boundingBox2.y + boundingBox2.height) - numbersRoi.y;
 	return isRoiFound;
 }
 
