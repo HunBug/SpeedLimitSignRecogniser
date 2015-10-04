@@ -62,12 +62,17 @@ int main(int argc, char* argv[]) {
 	cv::Mat normalised = nr.normalise(source);
 	auto candidates = rcf.getCandidates(normalised);
 	auto signs = tmd.getSigns(normalised, candidates);
+	cv::Mat resultImage = source.clone();
 	for (auto sign : signs) {
 		std::string recognised = nnr.recognise(normalised, sign);
-		if (!recognised.empty()) {
-			std::cout << "result: " << recognised << std::endl;
+		cv::Scalar textColor(0, 255, 0);
+		if (recognised.empty()) {
+			recognised = "NR";
+			textColor = cv::Scalar(0, 0, 255);
 		}
+		cv::putText(resultImage, recognised, cv::Point(sign.x, sign.y),
+				cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, textColor);
 	}
-
+	cv::imwrite("result.png", resultImage);
 	return 0;
 }

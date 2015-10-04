@@ -32,9 +32,9 @@ std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 	if (!roiFound) {
 		return "";
 	}
-	cv::Mat debugIm = sign.clone();
-	cv::rectangle(debugIm, numbersRoi, cv::Scalar(255));
-	cv::imwrite("numbersRect.png", debugIm);
+	/*cv::Mat debugIm = sign.clone();
+	 cv::rectangle(debugIm, numbersRoi, cv::Scalar(255));
+	 cv::imwrite("numbersRect.png", debugIm);*/
 
 	cv::Mat numbers = sign(numbersRoi);
 //	cv::cvtColor(numbers, numbers, CV_BGR2GRAY);
@@ -93,7 +93,7 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 		cv::Rect& numbersRoi) {
 	cv::Mat workImage;
 	cv::threshold(source, workImage, 1, 255, cv::THRESH_OTSU);
-	cv::imwrite("numbersThreshold.png", workImage);
+	//cv::imwrite("numbersThreshold.png", workImage);
 	workImage = 255 - workImage;
 
 	//Changes workimage!
