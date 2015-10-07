@@ -74,6 +74,8 @@ private:
 	static bool isInToleranceRange(unsigned int a, unsigned int b) {
 		return abs(a - b) <= POSITION_TOLERANCE;
 	}
+	static bool isContains(std::string text, std::string pattern,
+			bool ignoreCase = false);
 }
 ;
 

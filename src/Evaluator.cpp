@@ -139,7 +139,8 @@ std::map<std::string, std::vector<RecognitionResult>> Evaluator::parseFile(
 		std::string cornerTopY = lineParts.at(3);
 		std::string cornerRightX = lineParts.at(4);
 		std::string cornerBottomY = lineParts.at(5);
-		if (imageFileName.find("speedLimit") != std::string::npos) {
+		if (isContains(imageFileName, "speedLimit", true)
+				&& isContains(annotation, "speedLimit", true)) {
 			cv::Rect position;
 			unsigned int speedLimit;
 
@@ -159,6 +160,15 @@ std::map<std::string, std::vector<RecognitionResult>> Evaluator::parseFile(
 	}
 
 	return parsedResults;
+}
+
+bool Evaluator::isContains(std::string text, std::string pattern,
+		bool ignoreCase) {
+	if (ignoreCase) {
+		boost::to_upper(text);
+		boost::to_upper(pattern);
+	}
+	return text.find(pattern) != std::string::npos;
 }
 
 } /* namespace slsr */
