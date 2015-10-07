@@ -19,6 +19,8 @@ public:
 			unsigned char speedLimit);
 	virtual ~RecognitionResult();
 
+	RecognitionResult();
+
 	bool isSignFound() const {
 		return m_signFound;
 	}
@@ -35,9 +37,9 @@ private:
 	RecognitionResult(bool signFound, cv::Rect signPosition,
 			unsigned char speedLimit);
 
-	const cv::Rect m_signPosition;
-	const unsigned char m_speedLimit;
-	const bool m_signFound;
+	cv::Rect m_signPosition;
+	unsigned char m_speedLimit;
+	bool m_signFound;
 };
 
 } /* namespace slsr */

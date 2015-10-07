@@ -19,6 +19,7 @@
 #include "TemplateMatchingDetector.h"
 #include "RawPixelFeatureExtractor.h"
 #include "NearestNeighbourRecogniser.h"
+#include "Evaluator.h"
 
 namespace po = boost::program_options;
 using namespace slsr;
@@ -26,12 +27,15 @@ using namespace slsr;
 int main(int argc, char* argv[]) {
 	//Handle command line arguments
 	std::string path;
+	std::string annotationFile;
 	bool isDirectory;
 	po::options_description parameterDescription(
 			"Allowed options\nOnly one file or directory path can be set.");
 	parameterDescription.add_options()("help", "Show help.")("f",
 			po::value < std::string > (&path), "file")("d",
-			po::value < std::string > (&path), "file");
+			po::value < std::string > (&path), "directory")("a",
+			po::value < std::string > (&annotationFile),
+			"annotation file for performance statistics");
 	po::variables_map parametersMap;
 	po::store(po::parse_command_line(argc, argv, parameterDescription),
 			parametersMap);
@@ -45,6 +49,12 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	isDirectory = (parametersMap.count("d") == 1);
+	std::shared_ptr < Evaluator > evaluator;
+	if (parametersMap.count("a") == 1) {
+		std::cout << "Reading annotation file..." << std::endl;
+		;
+		evaluator.reset(new Evaluator(annotationFile));
+	}
 
 	//Initialise recognition flow
 	FileSource fs;
@@ -60,27 +70,51 @@ int main(int argc, char* argv[]) {
 	while (fs.next()) {
 		try {
 			std::cout << "Processing: " << fs.getCurrentFileName() << " path: "
-					<< fs.getCurrentPath() << std::endl;
+					<< fs.getCurrentPath();
 
 			cv::Mat source = fs.getCurrent();
 			cv::Mat normalised = nr.normalise(source);
 			auto candidates = rcf.getCandidates(normalised);
 			auto signs = tmd.getSigns(normalised, candidates);
 			cv::Mat resultImage = source.clone();
+			std::cout << " #Signs: " << signs.size();
 			for (auto sign : signs) {
 				std::string recognised = nnr.recognise(normalised, sign);
+				RecognitionResult result =
+						RecognitionResult::createNotFoundResult();
+				if (!recognised.empty()) {
+					result = RecognitionResult::createFoundResult(sign,
+							boost::lexical_cast<unsigned int>(recognised));
+				}
 				cv::Scalar textColor(0, 255, 0);
 				if (recognised.empty()) {
 					recognised = "NR";
 					textColor = cv::Scalar(0, 0, 255);
 				}
+				std::cout << " Rcg: " << recognised;
 				cv::putText(resultImage, recognised, cv::Point(sign.x, sign.y),
 						cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, textColor);
+				if (evaluator) {
+					evaluator->addMeasurement(result,
+							fs.getCurrentFileName() + ".png");
+				}
 			}
 			cv::imwrite(fs.getCurrentFileName() + "_res.png", resultImage);
+			std::cout << std::endl;
+
 		} catch (...) {
 			std::cout << "EXCEPTION" << std::endl;
 		}
 	}
+
+	if (evaluator) {
+		auto results = evaluator->summaryStatistics();
+		std::cout << "TP: " << results.truePositive.size() << " TN: "
+				<< results.trueNegative.size() << " FP: "
+				<< results.falsePositive.size() << " FN: "
+				<< results.falseNegative.size() << std::endl;
+		std::cout << "F1 score: " << results.f1Score() << std::endl;
+	}
+
 	return 0;
 }

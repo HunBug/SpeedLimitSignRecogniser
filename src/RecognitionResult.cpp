@@ -9,6 +9,10 @@
 
 namespace slsr {
 
+RecognitionResult::RecognitionResult() :
+		m_signFound(false) {
+}
+
 RecognitionResult::RecognitionResult(bool signFound, cv::Rect signPosition,
 		unsigned char speedLimit) :
 		m_signFound(signFound), m_signPosition(signPosition), m_speedLimit(
@@ -29,4 +33,3 @@ RecognitionResult RecognitionResult::createFoundResult(cv::Rect signPosition,
 }
 
 } /* namespace slsr */
-
