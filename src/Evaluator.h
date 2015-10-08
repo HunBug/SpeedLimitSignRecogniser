@@ -47,6 +47,10 @@ public:
 			return ((double) truePositive.size())
 					/ (truePositive.size() + falsePositive.size());
 		}
+		size_t totalMeasurement() {
+			return truePositive.size() + trueNegative.size()
+					+ falsePositive.size() + falseNegative.size();
+		}
 	};
 	static const unsigned int POSITION_TOLERANCE = 30;
 

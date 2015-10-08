@@ -45,7 +45,6 @@ int main(int argc, char* argv[]) {
 	std::shared_ptr < Evaluator > evaluator;
 	if (parametersMap.count("a") == 1) {
 		std::cout << "Reading annotation file..." << std::endl;
-		;
 		evaluator.reset(new Evaluator(annotationFile));
 	}
 

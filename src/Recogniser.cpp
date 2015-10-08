@@ -84,7 +84,9 @@ void Recogniser::start(FileSource& fileSource,
 				<< results.trueNegative.size() << " FP: "
 				<< results.falsePositive.size() << " FN: "
 				<< results.falseNegative.size() << std::endl;
-		std::cout << "F1 score: " << results.f1Score() << std::endl;
+		std::cout << "F1 score: " << results.f1Score() << " (Recall: "
+				<< results.recall() << "  Precision: " << results.precision()
+				<< ")" << std::endl;
 	}
 }
 
