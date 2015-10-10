@@ -7,6 +7,7 @@
 
 #include "Recogniser.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/timer/timer.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "NoiseRemover.h"
@@ -42,6 +43,8 @@ void Recogniser::start(FileSource& fileSource,
 
 	//Do recognition
 	while (fileSource.next()) {
+		boost::timer::auto_cpu_timer measureRecognition(
+				"Image processing: %t sec CPU, %w sec real");
 		try {
 			std::cout << "Processing: " << fileSource.getCurrentFileName()
 					<< " path: " << fileSource.getCurrentPath();

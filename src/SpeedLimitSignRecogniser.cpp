@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
+#include <boost/timer/timer.hpp>
 #include "FileSource.h"
 #include "Evaluator.h"
 #include "Recogniser.h"
@@ -18,6 +19,8 @@ namespace po = boost::program_options;
 using namespace slsr;
 
 int main(int argc, char* argv[]) {
+	boost::timer::auto_cpu_timer measureProgram(
+			"Whole progrem: %t sec CPU, %w sec real");
 	//Handle command line arguments
 	std::string path;
 	std::string annotationFile;

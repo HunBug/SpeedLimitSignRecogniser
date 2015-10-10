@@ -38,7 +38,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.189276305" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -static-libgcc -static-libstdc++" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.189276305" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -static-libgcc -static-libstdc++ -lrt" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1074785581" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug.1587573944" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug"/>
@@ -56,6 +56,8 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_imgcodecs300.dll"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_imgproc300.dll"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="opencv_ml300.dll"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_timer-mgw48-mt-d-1_59"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_chrono-mgw48-mt-d-1_59"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1941276420" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -108,7 +110,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\boost_1_59_0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;c:\Tools\OpenCv3\build\include&quot;"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.675267587" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -static-libgcc -static-libstdc++" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.675267587" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -static-libgcc -static-libstdc++ -lrt" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2050073563" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.release.765505969" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.release"/>
@@ -160,4 +162,5 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>
