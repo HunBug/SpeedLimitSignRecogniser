@@ -33,9 +33,7 @@ Evaluator::Result Evaluator::summaryStatistics() {
 	Evaluator::Result evaluateStatistics;
 	for (auto& imageMeasuredResults : m_measuredResults) {
 		for (auto& measuredResult : imageMeasuredResults.second) {
-			//Dummy value, there is no default constructor
-			RecognitionResult expectedResult =
-					RecognitionResult::createNotFoundResult();
+			RecognitionResult expectedResult;
 			auto evaluation = evaluate(measuredResult,
 					imageMeasuredResults.first, expectedResult);
 			Evaluator::ResultElement resultElement;
@@ -80,15 +78,25 @@ Evaluator::Result Evaluator::summaryStatistics() {
 
 bool Evaluator::evaluate(const RecognitionResult result,
 		std::string sourceFileName, RecognitionResult& expectedResult) const {
-	auto fileExpectedResult = m_expectedResults.at(sourceFileName);
+	std::vector < RecognitionResult > fileExpectedResults;
+	if (m_expectedResults.count(sourceFileName) > 0) {
+		auto &fileResults = m_expectedResults.at(sourceFileName);
+		fileExpectedResults.insert(fileExpectedResults.end(),
+				fileResults.begin(), fileResults.end());
+	}
 	bool isEqual = false;
-	for (auto possibleExpectedResult : fileExpectedResult) {
+	for (auto possibleExpectedResult : fileExpectedResults) {
 		auto evaluateResult = evaluate(result, possibleExpectedResult);
 		isEqual |= evaluateResult;
 		expectedResult = possibleExpectedResult;
 		if (evaluateResult) {
 			break;
 		}
+	}
+	//TODO is it the expected behavior to "no sign" if it is not in the annotation file?
+
+	if (m_expectedResults.count(sourceFileName) == 0 && !result.isSignFound()) {
+		isEqual = true;
 	}
 	return isEqual;
 }
@@ -110,6 +118,7 @@ bool Evaluator::evaluate(const RecognitionResult& result,
 	return isEqual;
 }
 
+//TODO read files without speed signs too!
 std::map<std::string, std::vector<RecognitionResult>> Evaluator::parseFile(
 		std::string filePath) {
 	std::map<std::string, std::vector<RecognitionResult>> parsedResults;

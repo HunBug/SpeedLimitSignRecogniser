@@ -14,8 +14,6 @@
 #include "Evaluator.h"
 #include "Recogniser.h"
 
-#include "DemosaicingNormaliser.h"
-
 namespace po = boost::program_options;
 using namespace slsr;
 
@@ -53,13 +51,8 @@ int main(int argc, char* argv[]) {
 	FileSource fileSource;
 	fileSource.setSourcePath(path, isDirectory);
 
-	fileSource.next();
-	auto current = fileSource.getCurrent();
-	DemosaicingNormaliser d;
-	d.normalise(current);
-
 	Recogniser recogniser;
-	//recogniser.start(fileSource, evaluator);
+	recogniser.start(fileSource, evaluator);
 
 	return 0;
 }

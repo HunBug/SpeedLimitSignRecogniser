@@ -21,6 +21,7 @@ DemosaicingNormaliser::~DemosaicingNormaliser() {
 	// TODO Auto-generated destructor stub
 }
 
+//TODO Quick&Dirty implementation, but it works
 cv::Mat DemosaicingNormaliser::normalise(cv::Mat source) {
 	if (source.channels() != 1) {
 		cv::cvtColor(source, source, CV_BGR2GRAY);
@@ -30,55 +31,85 @@ cv::Mat DemosaicingNormaliser::normalise(cv::Mat source) {
 				std::logic_error(
 						"Only on unsigned char images can be demosaiced."));
 	}
-	const unsigned int DEINTERLACE = 0;
+	//Chanel names are not relevant!!!!!!
 	cv::Mat green = cv::Mat::zeros(source.size(), source.type());
 	cv::Mat red = cv::Mat::zeros(source.size(), source.type());
 	cv::Mat blue = cv::Mat::zeros(source.size(), source.type());
-	for (unsigned int y = 0;
+	cv::Mat white = cv::Mat::zeros(source.size(), source.type());
+	for (unsigned int y = 1;
 			y < static_cast<unsigned int>(source.size().height) - 1; ++y) {
 		//unsigned char* pRow = source.ptr<unsigned char>(y);
-		for (unsigned int x = 0;
+		for (unsigned int x = 1;
 				x < static_cast<unsigned int>(source.size().width) - 1; ++x) {
 			//unsigned char grayValue = pRow[x];
-			if (1 == y % 2) {
+			if (0 == y % 2) {
 				if (0 == x % 2) {
 					green.at<unsigned char>(y, x) = source.at<unsigned char>(y,
-							x + DEINTERLACE);
+							x);
 					red.at<unsigned char>(y, x) = source.at<unsigned char>(y,
-							x + 1 - DEINTERLACE);
+							x + 1);
 					blue.at<unsigned char>(y, x) = source.at<unsigned char>(
-							y + 1, x + DEINTERLACE);
+							y + 1, x);
+					white.at<unsigned char>(y, x) = source.at<unsigned char>(
+							y + 1, x + 1);
 				} else {
 					green.at<unsigned char>(y, x) = source.at<unsigned char>(y,
-							x + 1 - DEINTERLACE);
+							x - 1);
 					red.at<unsigned char>(y, x) = source.at<unsigned char>(y,
-							x + DEINTERLACE);
+							x);
 					blue.at<unsigned char>(y, x) = source.at<unsigned char>(
-							y + 1, x + 1 - DEINTERLACE);
+							y + 1, x - 1);
+					white.at<unsigned char>(y, x) = source.at<unsigned char>(
+							y + 1, x);
 				}
 			} else {
 				if (0 == x % 2) {
-					green.at<unsigned char>(y, x) = source.at<unsigned char>(y,
-							x + 1);
+					green.at<unsigned char>(y, x) = source.at<unsigned char>(
+							y - 1, x);
 					red.at<unsigned char>(y, x) = source.at<unsigned char>(
-							y + 1, x + 1);
+							y - 1, x + 1);
 					blue.at<unsigned char>(y, x) = source.at<unsigned char>(y,
 							x);
+					white.at<unsigned char>(y, x) = source.at<unsigned char>(y,
+							x + 1);
 				} else {
-					green.at<unsigned char>(y, x) = source.at<unsigned char>(y,
-							x);
+					green.at<unsigned char>(y, x) = source.at<unsigned char>(
+							y - 1, x - 1);
 					red.at<unsigned char>(y, x) = source.at<unsigned char>(
-							y + 1, x);
+							y - 1, x);
 					blue.at<unsigned char>(y, x) = source.at<unsigned char>(y,
-							x + 1);
+							x - 1);
+					white.at<unsigned char>(y, x) = source.at<unsigned char>(y,
+							x);
 				}
 			}
 		}
 	}
-	cv::imwrite("green.png", green);
-	cv::imwrite("red.png", red);
-	cv::imwrite("vlue.png", blue);
-	return green;
+	cv::equalizeHist(green, green);
+	cv::equalizeHist(red, red);
+	cv::equalizeHist(blue, blue);
+	cv::equalizeHist(white, white);
+	cv::resize(green, green, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
+	cv::resize(green, green, cv::Size(), 2.0, 2.0, cv::INTER_LANCZOS4);
+	cv::resize(red, red, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
+	cv::resize(red, red, cv::Size(), 2.0, 2.0, cv::INTER_LANCZOS4);
+	cv::resize(blue, blue, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
+	cv::resize(blue, blue, cv::Size(), 2.0, 2.0, cv::INTER_LANCZOS4);
+	cv::resize(white, white, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
+	cv::resize(white, white, cv::Size(), 2.0, 2.0, cv::INTER_LANCZOS4);
+
+	//cv::imwrite("green.png", green);
+	//cv::imwrite("red.png", red);
+	//cv::imwrite("blue.png", blue);
+	//cv::imwrite("white.png", white);
+
+	cv::addWeighted(red, 0.5, green, 0.5, 1, red);
+	cv::addWeighted(blue, 0.5, white, 0.5, 1, blue);
+	cv::addWeighted(blue, 0.5, red, 0.5, 1, red);
+
+	cv::cvtColor(red, white, CV_GRAY2BGR);
+	//cv::imwrite("result.png", red);
+	return white;
 }
 
 } /* namespace slsr */

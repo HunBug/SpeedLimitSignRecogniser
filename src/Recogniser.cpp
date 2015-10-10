@@ -11,12 +11,14 @@
 #include <opencv2/imgproc.hpp>
 #include "NoiseRemover.h"
 #include "RectangleCandidateFinder.h"
-
+#include "DemosaicingNormaliser.h"
 #include "TemplateMatchingDetector.h"
 #include "RawPixelFeatureExtractor.h"
 #include "NearestNeighbourRecogniser.h"
 
 namespace slsr {
+
+#define FLOW_DEBUG std::cout<<"l:"<<__LINE__<<" "
 
 Recogniser::Recogniser() {
 	// TODO Auto-generated constructor stub
@@ -29,12 +31,14 @@ Recogniser::~Recogniser() {
 
 void Recogniser::start(FileSource& fileSource,
 		std::shared_ptr<Evaluator> evaluator) {
-	NoiseRemover nr;
+	NoiseRemover noiseRemover;
 	std::vector<double> scales { 30, 35, 40, 45, 50, 60, 70 };
-	RectangleCandidateFinder rcf(40.0 / 50.0, scales);
-	TemplateMatchingDetector tmd;
-	std::shared_ptr < IFeatureExtractor > fe(new RawPixelFeatureExtractor());
-	NearestNeighbourRecogniser nnr(fe);
+	RectangleCandidateFinder rectangleCandidateFinder(40.0 / 50.0, scales);
+	TemplateMatchingDetector templateMatchingDetector;
+	std::shared_ptr < IFeatureExtractor
+			> featureExtractor(new RawPixelFeatureExtractor());
+	NearestNeighbourRecogniser nearestNeighbourRecogniser(featureExtractor);
+	DemosaicingNormaliser demosaicing;
 
 	//Do recognition
 	while (fileSource.next()) {
@@ -42,16 +46,28 @@ void Recogniser::start(FileSource& fileSource,
 			std::cout << "Processing: " << fileSource.getCurrentFileName()
 					<< " path: " << fileSource.getCurrentPath();
 
+			FLOW_DEBUG;
 			cv::Mat source = fileSource.getCurrent();
-			cv::Mat normalised = nr.normalise(source);
-			auto candidates = rcf.getCandidates(normalised);
-			auto signs = tmd.getSigns(normalised, candidates);
+			FLOW_DEBUG;
+			cv::Mat normalised = demosaicing.normalise(source);
+			FLOW_DEBUG;
+			normalised = noiseRemover.normalise(normalised);
+			FLOW_DEBUG;
+			auto candidates = rectangleCandidateFinder.getCandidates(
+					normalised);
+			FLOW_DEBUG;
+			auto signs = templateMatchingDetector.getSigns(normalised,
+					candidates);
+			FLOW_DEBUG;
 			cv::Mat resultImage = source.clone();
 			std::cout << " #Signs: " << signs.size();
+			RecognitionResult result =
+					RecognitionResult::createNotFoundResult();
 			for (auto sign : signs) {
-				std::string recognised = nnr.recognise(normalised, sign);
-				RecognitionResult result =
-						RecognitionResult::createNotFoundResult();
+				FLOW_DEBUG;
+				std::string recognised = nearestNeighbourRecogniser.recognise(
+						normalised, sign);
+
 				if (!recognised.empty()) {
 					result = RecognitionResult::createFoundResult(sign,
 							boost::lexical_cast<unsigned int>(recognised));
@@ -64,21 +80,23 @@ void Recogniser::start(FileSource& fileSource,
 				std::cout << " Rcg: " << recognised;
 				cv::putText(resultImage, recognised, cv::Point(sign.x, sign.y),
 						cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, textColor);
-				if (evaluator) {
-					evaluator->addMeasurement(result,
-							fileSource.getCurrentFileName() + ".png");
-				}
+
 			}
 			cv::imwrite(fileSource.getCurrentFileName() + "_res.png",
 					resultImage);
+			if (evaluator) {
+				evaluator->addMeasurement(result,
+						fileSource.getCurrentFileName() + ".png");
+			}
 			std::cout << std::endl;
 
 		} catch (...) {
 			std::cout << "EXCEPTION" << std::endl;
 		}
 	}
-
+	FLOW_DEBUG;
 	if (evaluator) {
+		FLOW_DEBUG;
 		auto results = evaluator->summaryStatistics();
 		std::cout << "TP: " << results.truePositive.size() << " TN: "
 				<< results.trueNegative.size() << " FP: "
