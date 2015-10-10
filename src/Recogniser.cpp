@@ -54,7 +54,9 @@ void Recogniser::start(FileSource& fileSource,
 				"Image processing: %t sec CPU, %w sec real");
 		try {
 			std::cout << "Processing: " << fileSource.getCurrentFileName()
-					<< " path: " << fileSource.getCurrentPath();
+					<< " path: " << fileSource.getCurrentPath() << "  "
+					<< fileSource.ramainingSize() << "(" << fileSource.size()
+					<< ")" << std::endl;
 			boost::optional < RecognitionResult > result;
 			if (isLoadResultIfAvailable()) {
 				result = loadResultIfAvailable(fileSource.getCurrentFileName());

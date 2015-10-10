@@ -39,7 +39,7 @@ void FileSource::setSourcePath(std::string path, bool isDirectory) {
 	}
 
 	this->m_filePaths = newFilePaths;
-
+	this->m_initialSize = newFilePaths.size();
 }
 
 bool FileSource::next() {
