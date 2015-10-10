@@ -16,7 +16,7 @@ class RectangleCandidateFinder: public ICandidateFinder {
 public:
 	typedef float GradientType;
 	static constexpr GradientType MIN_GRADIENT_THRESHOLD = 100;
-	static constexpr GradientType MIN_VOTE_THRESHOLD = 1000;
+	static constexpr GradientType MIN_VOTE_THRESHOLD = 4750;
 
 	RectangleCandidateFinder(unsigned int width, unsigned int height);
 	RectangleCandidateFinder(double rectangleSpectRation,

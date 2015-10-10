@@ -55,6 +55,7 @@ int main(int argc, char* argv[]) {
 	fileSource.setSourcePath(path, isDirectory);
 
 	Recogniser recogniser;
+	recogniser.setLoadResultIfAvailable(true);
 	recogniser.start(fileSource, evaluator);
 
 	return 0;

@@ -9,6 +9,7 @@
 #define RECOGNITIONRESULT_H_
 
 #include <opencv2/core.hpp>
+#include <boost/serialization/serialization.hpp>
 
 namespace slsr {
 
@@ -36,6 +37,16 @@ public:
 private:
 	RecognitionResult(bool signFound, cv::Rect signPosition,
 			unsigned char speedLimit);
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version) {
+		ar & m_signFound;
+		ar & m_speedLimit;
+		ar & m_signPosition.x;
+		ar & m_signPosition.y;
+		ar & m_signPosition.width;
+		ar & m_signPosition.height;
+	}
 
 	cv::Rect m_signPosition;
 	unsigned char m_speedLimit;
