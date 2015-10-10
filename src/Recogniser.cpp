@@ -21,10 +21,9 @@
 #include "TemplateMatchingDetector.h"
 #include "RawPixelFeatureExtractor.h"
 #include "NearestNeighbourRecogniser.h"
+#include "DebugTools.h"
 
 namespace slsr {
-
-#define FLOW_DEBUG std::cout<<"l:"<<__LINE__<<" "
 
 Recogniser::Recogniser() :
 		m_loadResultIfAvailable(false) {
@@ -63,28 +62,28 @@ void Recogniser::start(FileSource& fileSource,
 			}
 			if (!result.is_initialized()) {
 				result = RecognitionResult::createNotFoundResult();
-				FLOW_DEBUG;
+				PRINT_LINE_DEBUG;
 				cv::Mat source = fileSource.getCurrent();
-				FLOW_DEBUG;
+				PRINT_LINE_DEBUG;
 				cv::Mat normalised = demosaicing.normalise(source);
-				FLOW_DEBUG;
+				PRINT_LINE_DEBUG;
 				normalised = noiseRemover.normalise(normalised);
-				FLOW_DEBUG;
+				PRINT_LINE_DEBUG;
 				auto candidates = rectangleCandidateFinder.getCandidates(
 						normalised);
-				FLOW_DEBUG;
+				PRINT_LINE_DEBUG;
 				auto signs = templateMatchingDetector.getSigns(normalised,
 						candidates);
-				FLOW_DEBUG;
+				PRINT_LINE_DEBUG;
 				cv::Mat resultImage = source.clone();
 				std::cout << " #Signs: " << signs.size();
 
 				for (auto sign : signs) {
-					FLOW_DEBUG;
+					PRINT_LINE_DEBUG;
 					std::string recognised =
 							nearestNeighbourRecogniser.recognise(normalised,
 									sign);
-					FLOW_DEBUG;
+					PRINT_LINE_DEBUG;
 					if (!recognised.empty()) {
 						result = RecognitionResult::createFoundResult(sign,
 								boost::lexical_cast<unsigned int>(recognised));
@@ -100,11 +99,11 @@ void Recogniser::start(FileSource& fileSource,
 							cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, textColor);
 
 				}
-				FLOW_DEBUG;
+				PRINT_LINE_DEBUG;
 				saveResults(fileSource.getCurrentFileName(), resultImage,
 						result.get());
 			}
-			FLOW_DEBUG;
+			PRINT_LINE_DEBUG;
 			if (evaluator) {
 				evaluator->addMeasurement(result.get(),
 						fileSource.getCurrentFileName() + ".png");
@@ -116,9 +115,9 @@ void Recogniser::start(FileSource& fileSource,
 			std::cout << boost::diagnostic_information(ex);
 		}
 	}
-	FLOW_DEBUG;
+	PRINT_LINE_DEBUG;
 	if (evaluator) {
-		FLOW_DEBUG;
+		PRINT_LINE_DEBUG;
 		auto results = evaluator->summaryStatistics();
 		std::cout << "TP: " << results.truePositive.size() << " TN: "
 				<< results.trueNegative.size() << " FP: "

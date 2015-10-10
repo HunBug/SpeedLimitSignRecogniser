@@ -31,7 +31,8 @@ int main(int argc, char* argv[]) {
 			po::value < std::string > (&path), "file")("d",
 			po::value < std::string > (&path), "directory")("a",
 			po::value < std::string > (&annotationFile),
-			"annotation file for performance statistics");
+			"annotation file for performance statistics")("force",
+			"force re-process");
 	po::variables_map parametersMap;
 	po::store(po::parse_command_line(argc, argv, parameterDescription),
 			parametersMap);
@@ -44,6 +45,7 @@ int main(int argc, char* argv[]) {
 		std::cout << parameterDescription << std::endl;
 		return 1;
 	}
+	bool isReprocess = parametersMap.count("force") > 0;
 	isDirectory = (parametersMap.count("d") == 1);
 	std::shared_ptr < Evaluator > evaluator;
 	if (parametersMap.count("a") == 1) {
@@ -55,7 +57,7 @@ int main(int argc, char* argv[]) {
 	fileSource.setSourcePath(path, isDirectory);
 
 	Recogniser recogniser;
-	recogniser.setLoadResultIfAvailable(true);
+	recogniser.setLoadResultIfAvailable(!isReprocess);
 	recogniser.start(fileSource, evaluator);
 
 	return 0;

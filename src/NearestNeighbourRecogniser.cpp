@@ -9,6 +9,7 @@
 #include <boost/lexical_cast.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include "DebugTools.h"
 
 namespace slsr {
 
@@ -25,6 +26,7 @@ NearestNeighbourRecogniser::~NearestNeighbourRecogniser() {
 
 std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 		cv::Rect signPosition) {
+	std::cout << "nnr" << std::endl;
 	cv::Mat sign = fullImage(signPosition);
 	cv::cvtColor(sign, sign, CV_BGR2GRAY);
 	cv::Rect numbersRoi;
@@ -35,7 +37,6 @@ std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 	/*cv::Mat debugIm = sign.clone();
 	 cv::rectangle(debugIm, numbersRoi, cv::Scalar(255));
 	 cv::imwrite("numbersRect.png", debugIm);*/
-
 	cv::Mat numbers = sign(numbersRoi);
 //	cv::cvtColor(numbers, numbers, CV_BGR2GRAY);
 	cv::resize(numbers, numbers, cv::Size(25, 15), cv::INTER_CUBIC);
@@ -136,7 +137,6 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 		if (areaOk && widthOk && heightOk) {
 			candidateIndices.push_back(contourIndex);
 		}
-		//cv::drawContours(workImage, contours, contourIndex, cv::Scalar(0),-1);
 	}
 	bool isRoiFound = candidateIndices.size() >= 2;
 	if (isRoiFound) {
@@ -152,8 +152,12 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 					weakestIndex = index;
 				}
 			}
-
-			candidateIndices.erase(candidateIndices.begin() + weakestIndex);
+			std::cout << std::endl << candidateIndices.size() << " "
+					<< weakestIndex;
+			auto candidateIndicesIndex = std::find(candidateIndices.begin(),
+					candidateIndices.end(), weakestIndex);
+			assert(candidateIndicesIndex != candidateIndices.end());
+			candidateIndices.erase(candidateIndicesIndex);
 		}
 		assert(candidateIndices.size() == 2);
 		auto boundingBox1 = cv::boundingRect(contours[candidateIndices[0]]);
