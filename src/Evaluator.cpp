@@ -104,7 +104,7 @@ bool Evaluator::evaluate(const RecognitionResult result,
 bool Evaluator::evaluate(const RecognitionResult& result,
 		const RecognitionResult& evaluteResult) const {
 	bool isEqual = result.isSignFound() == evaluteResult.isSignFound();
-	if (isEqual) {
+	if (result.isSignFound()) {
 		isEqual &= result.getSpeedLimit() == evaluteResult.getSpeedLimit();
 		isEqual &= isInToleranceRange(result.getSignPosition().x,
 				evaluteResult.getSignPosition().x);
@@ -164,7 +164,7 @@ std::map<std::string, std::vector<RecognitionResult>> Evaluator::parseFile(
 
 			parsedResults[imageFileName].push_back(
 					RecognitionResult::createFoundResult(position,
-							static_cast<unsigned char>(speedLimit)));
+							static_cast<unsigned char>(speedLimit), false));
 		}
 	}
 

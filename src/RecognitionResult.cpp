@@ -14,9 +14,9 @@ RecognitionResult::RecognitionResult() :
 }
 
 RecognitionResult::RecognitionResult(bool signFound, cv::Rect signPosition,
-		unsigned char speedLimit) :
+		unsigned char speedLimit, bool isScool) :
 		m_signFound(signFound), m_signPosition(signPosition), m_speedLimit(
-				speedLimit) {
+				speedLimit), m_isSchool(isScool) {
 }
 
 RecognitionResult::~RecognitionResult() {
@@ -24,12 +24,12 @@ RecognitionResult::~RecognitionResult() {
 }
 
 RecognitionResult RecognitionResult::createNotFoundResult() {
-	return RecognitionResult(false, cv::Rect(), 0);
+	return RecognitionResult(false, cv::Rect(), 0, false);
 }
 
 RecognitionResult RecognitionResult::createFoundResult(cv::Rect signPosition,
-		unsigned char speedLimit) {
-	return RecognitionResult(true, signPosition, speedLimit);
+		unsigned char speedLimit, bool isScool) {
+	return RecognitionResult(true, signPosition, speedLimit, isScool);
 }
 
 } /* namespace slsr */

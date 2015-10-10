@@ -15,6 +15,7 @@
 
 namespace slsr {
 
+//TODO School is not taken into account yet
 class Evaluator {
 public:
 	struct ResultElement {

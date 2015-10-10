@@ -7,6 +7,7 @@
 
 #include "NearestNeighbourRecogniser.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/optional.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include "DebugTools.h"
@@ -26,7 +27,6 @@ NearestNeighbourRecogniser::~NearestNeighbourRecogniser() {
 
 std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 		cv::Rect signPosition) {
-	std::cout << "nnr" << std::endl;
 	cv::Mat sign = fullImage(signPosition);
 	cv::cvtColor(sign, sign, CV_BGR2GRAY);
 	cv::Rect numbersRoi;
@@ -54,57 +54,34 @@ cv::Ptr<cv::ml::KNearest> NearestNeighbourRecogniser::getClassifier() {
 	//TODO this is only a Q&D prototype
 	if (!m_classifier.is_initialized()) {
 		auto classifier = cv::ml::KNearest::create();
-		cv::Mat s25 = cv::imread("25.png", cv::IMREAD_GRAYSCALE);
-		cv::resize(s25, s25, cv::Size(25, 15), cv::INTER_CUBIC);
-		cv::normalize(s25, s25, 0, 255, cv::NORM_MINMAX);
-		cv::Mat s30 = cv::imread("30.png", cv::IMREAD_GRAYSCALE);
-		cv::resize(s30, s30, cv::Size(25, 15), cv::INTER_CUBIC);
-		cv::normalize(s30, s30, 0, 255, cv::NORM_MINMAX);
-		cv::Mat s35 = cv::imread("35.png", cv::IMREAD_GRAYSCALE);
-		cv::resize(s35, s35, cv::Size(25, 15), cv::INTER_CUBIC);
-		cv::normalize(s35, s35, 0, 255, cv::NORM_MINMAX);
+		cv::Mat trainingResponses(getPossibleResults().size(), 1, CV_32F);
+		std::cout << "ts: " << trainingResponses.size() << std::endl;
+		boost::optional < cv::Mat > trainingSamples;
+		for (size_t templateIndex = 0;
+				templateIndex < getPossibleResults().size(); templateIndex++) {
+			short currentTemplateValue = getPossibleResults()[templateIndex];
+			std::cout << "curval " << currentTemplateValue << std::endl;
+			trainingResponses.at<float>(templateIndex) =
+					static_cast<float>(currentTemplateValue);
+			std::string fileName = boost::lexical_cast < std::string
+					> (currentTemplateValue) + ".png";
+			cv::Mat templateImage = cv::imread(fileName, cv::IMREAD_GRAYSCALE);
+			auto features = getFeature(templateImage);
 
-		cv::Mat s45 = cv::imread("45.png", cv::IMREAD_GRAYSCALE);
-		cv::resize(s45, s45, cv::Size(25, 15), cv::INTER_CUBIC);
-		cv::normalize(s45, s45, 0, 255, cv::NORM_MINMAX);
-		cv::Mat s55 = cv::imread("55.png", cv::IMREAD_GRAYSCALE);
-		cv::resize(s55, s55, cv::Size(25, 15), cv::INTER_CUBIC);
-		cv::normalize(s55, s55, 0, 255, cv::NORM_MINMAX);
-		cv::Mat s65 = cv::imread("65.png", cv::IMREAD_GRAYSCALE);
-		cv::resize(s65, s65, cv::Size(25, 15), cv::INTER_CUBIC);
-		cv::normalize(s65, s65, 0, 255, cv::NORM_MINMAX);
+			if (!trainingSamples.is_initialized()) {
+				trainingSamples = cv::Mat(0, features.size(), CV_32F);
+				std::cout << "tsa: " << trainingResponses.size() << std::endl;
+			}
 
-		auto feature25 = getFeatureExtractor()->extractFeatures(s25);
-		auto feature30 = getFeatureExtractor()->extractFeatures(s30);
-		auto feature35 = getFeatureExtractor()->extractFeatures(s35);
-		auto feature45 = getFeatureExtractor()->extractFeatures(s45);
-		auto feature55 = getFeatureExtractor()->extractFeatures(s55);
-		auto feature65 = getFeatureExtractor()->extractFeatures(s65);
-		cv::Mat trainingResponses =
-				(cv::Mat_<float>(6, 1) << 25, 30, 35, 45, 55, 65);
-		cv::Mat trainingSamples(0, feature25.size(), CV_32F);
-		auto a = cv::Mat(feature25);
-		cv::transpose(a, a);
-		trainingSamples.push_back(a);
-		a = cv::Mat(feature30);
-		cv::transpose(a, a);
-		trainingSamples.push_back(a);
-		a = cv::Mat(feature35);
-		cv::transpose(a, a);
-		trainingSamples.push_back(a);
+			auto featureRow = cv::Mat(features);
+			std::cout << "fr: " << featureRow.size() << std::endl;
+			cv::transpose(featureRow, featureRow);
+			trainingSamples.get().push_back(featureRow);
+		}
 
-		a = cv::Mat(feature45);
-		cv::transpose(a, a);
-		trainingSamples.push_back(a);
-		a = cv::Mat(feature55);
-		cv::transpose(a, a);
-		trainingSamples.push_back(a);
-		a = cv::Mat(feature65);
-		cv::transpose(a, a);
-		trainingSamples.push_back(a);
-		auto trainingData = cv::ml::TrainData::create(trainingSamples,
+		auto trainingData = cv::ml::TrainData::create(trainingSamples.get(),
 				cv::ml::SampleTypes::ROW_SAMPLE, trainingResponses);
-
+		std::cout << trainingResponses << std::endl;
 		classifier->setIsClassifier(true);
 		classifier->setAlgorithmType(cv::ml::KNearest::Types::BRUTE_FORCE);
 		classifier->setDefaultK(1);
@@ -170,6 +147,16 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 				boundingBox2.y + boundingBox2.height) - numbersRoi.y;
 	}
 	return isRoiFound;
+}
+
+std::vector<float> NearestNeighbourRecogniser::getFeature(cv::Mat source) {
+	if (source.channels() > 1) {
+		cv::cvtColor(source, source, CV_8U);
+	}
+	cv::resize(source, source, cv::Size(25, 15), cv::INTER_CUBIC);
+	cv::normalize(source, source, 0, 255, cv::NORM_MINMAX);
+	cv::imwrite("templatesample.png", source);
+	return getFeatureExtractor()->extractFeatures(source);
 }
 
 } /* namespace slsr */

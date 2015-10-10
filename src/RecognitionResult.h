@@ -17,7 +17,7 @@ class RecognitionResult {
 public:
 	static RecognitionResult createNotFoundResult();
 	static RecognitionResult createFoundResult(cv::Rect signPosition,
-			unsigned char speedLimit);
+			unsigned char speedLimit, bool isScool);
 	virtual ~RecognitionResult();
 
 	RecognitionResult();
@@ -36,7 +36,7 @@ public:
 
 private:
 	RecognitionResult(bool signFound, cv::Rect signPosition,
-			unsigned char speedLimit);
+			unsigned char speedLimit, bool isScool);
 	friend class boost::serialization::access;
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int version) {
@@ -46,11 +46,13 @@ private:
 		ar & m_signPosition.y;
 		ar & m_signPosition.width;
 		ar & m_signPosition.height;
+		ar & m_isSchool;
 	}
 
 	cv::Rect m_signPosition;
 	unsigned char m_speedLimit;
 	bool m_signFound;
+	bool m_isSchool;
 };
 
 } /* namespace slsr */

@@ -83,10 +83,13 @@ void Recogniser::start(FileSource& fileSource,
 					std::string recognised =
 							nearestNeighbourRecogniser.recognise(normalised,
 									sign);
+					std::cout << "re: " << recognised << "  si: " << sign
+							<< std::endl;
 					PRINT_LINE_DEBUG;
 					if (!recognised.empty()) {
 						result = RecognitionResult::createFoundResult(sign,
-								boost::lexical_cast<unsigned int>(recognised));
+								boost::lexical_cast<unsigned int>(recognised),
+								false);
 					}
 					cv::Scalar textColor(0, 255, 0);
 					if (recognised.empty()) {

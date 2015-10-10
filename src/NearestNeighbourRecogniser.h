@@ -9,6 +9,7 @@
 #define NEARESTNEIGHBOURRECOGNISER_H_
 
 #include "IRecogniser.h"
+#include <array>
 #include <boost/optional.hpp>
 #include <opencv2/ml.hpp>
 
@@ -22,11 +23,17 @@ public:
 
 	virtual std::string recognise(cv::Mat fullImage, cv::Rect signPosition)
 			override;
+
+	std::array<short, 6> getPossibleResults() {
+		static std::array<short, 6> possibleResults { { 25, 30, 35, 45, 55, 65 } };
+		return possibleResults;
+	}
 private:
 	boost::optional<cv::Ptr<cv::ml::KNearest>> m_classifier;
 
 	cv::Ptr<cv::ml::KNearest> getClassifier();
 	bool getNumbersRoi(cv::Mat source, cv::Rect& numbersRoi);
+	std::vector<float> getFeature(cv::Mat source);
 };
 
 } /* namespace slsr */
