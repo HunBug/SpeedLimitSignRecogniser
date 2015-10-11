@@ -24,6 +24,9 @@ public:
 
 	virtual std::vector<cv::Rect2i> getSigns(cv::Mat source,
 			cv::Mat candidateMap) override;
+	cv::Mat getDebugImage() {
+		return _debug_image;
+	}
 private:
 	static cv::Mat getSignTemplate();
 
@@ -32,7 +35,7 @@ private:
 	bool tryNextCandidate(cv::Mat source, cv::Mat candidateMap,
 			cv::Rect2i& sign);
 
-	std::string _debug_iterationprefix;
+	cv::Mat _debug_image;
 };
 
 } /* namespace slsr */

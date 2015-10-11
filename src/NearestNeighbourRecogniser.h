@@ -37,6 +37,7 @@ private:
 	bool getNumbersRoi(cv::Mat source, cv::Rect& numbersRoi);
 	std::vector<float> getNumberFeatures(cv::Mat source);
 
+	cv::Mat _debug_image;
 };
 
 } /* namespace slsr */

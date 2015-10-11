@@ -30,15 +30,20 @@ std::vector<cv::Rect2i> TemplateMatchingDetector::getSigns(cv::Mat source,
 		cv::Mat candidateMap) {
 	std::vector < cv::Rect2i > signs;
 	cv::Mat workCandidateMap = candidateMap;
+	_debug_image = source.clone();
 	for (auto candidateIteration = 0; candidateIteration < CANDIDATES_TO_TRY;
 			++candidateIteration) {
 		cv::Rect2i sign;
-		_debug_iterationprefix = boost::lexical_cast < std::string
-				> (candidateIteration);
 		bool signFound = tryNextCandidate(source, workCandidateMap, sign);
 		if (signFound) {
 			signs.push_back(sign);
 		}
+
+		//DEBUG IMAGE
+		cv::Scalar debugColor =
+				signFound ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
+		cv::rectangle(_debug_image, sign, debugColor, 1);
+		//DEBUG IMAGE
 	}
 
 	return signs;
@@ -54,7 +59,7 @@ cv::Mat TemplateMatchingDetector::getSignTemplate() {
 }
 
 std::vector<double> TemplateMatchingDetector::getTemplateScales() {
-	//TODO revisit scales;
+//TODO revisit scales;
 	static std::vector<double> scales { .30, .35, .4, .35, .5, .55, .75, .85,
 			1.0 };
 	return scales;
@@ -71,7 +76,7 @@ bool TemplateMatchingDetector::tryNextCandidate(cv::Mat source,
 		return false;
 	}
 
-	//TODO adjust this size
+//TODO adjust this size
 	cv::Size roiSize(getSignTemplate().size().width * 0.5,
 			getSignTemplate().size().height * 0.5);
 	cv::Rect roi(maxVote_loc.x - roiSize.width, maxVote_loc.y - roiSize.height,
@@ -90,12 +95,11 @@ bool TemplateMatchingDetector::tryNextCandidate(cv::Mat source,
 			maxVote_loc + rectanlgeCornerShit, cv::Scalar(0), CV_FILLED);
 
 	bool signFound = templateMatchValue > MIN_TEMPLATE_MATCH_VALUE;
-	if (signFound) {
-		sign = cv::Rect(roi.x + signPosition.x, roi.y + signPosition.y,
-				rectanlgeCornerShit.x, rectanlgeCornerShit.y * 2.2);
-	}
+
+	sign = cv::Rect(roi.x + signPosition.x, roi.y + signPosition.y,
+			rectanlgeCornerShit.x, rectanlgeCornerShit.y * 2.2);
+
 	return signFound;
 }
 
 } /* namespace slsr */
-

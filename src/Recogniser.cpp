@@ -49,24 +49,18 @@ void Recogniser::start(FileSource& fileSource,
 
 	//Do recognition
 	while (fileSource.next()) {
-		boost::timer::auto_cpu_timer measureRecognition(
-				"Image processing: %t sec CPU, %w sec real");
 		try {
 			std::cout << "Processing: " << fileSource.getCurrentFileName()
-					<< " path: " << fileSource.getCurrentPath() << "  "
-					<< fileSource.ramainingSize() << "(" << fileSource.size()
-					<< ")" << std::endl;
+					<< "  " << fileSource.ramainingSize() << "("
+					<< fileSource.size() << ")" << std::endl;
 			boost::optional < RecognitionResult > result;
 			if (isLoadResultIfAvailable()) {
 				result = loadResultIfAvailable(fileSource.getCurrentFileName());
 			}
 			if (!result.is_initialized()) {
 				result = RecognitionResult::createNotFoundResult();
-				PRINT_LINE_DEBUG;
 				cv::Mat source = fileSource.getCurrent();
-				PRINT_LINE_DEBUG;
 				cv::Mat normalised = demosaicing.normalise(source);
-				PRINT_LINE_DEBUG;
 				normalised = noiseRemover.normalise(normalised);
 				PRINT_LINE_DEBUG;
 				auto candidates = rectangleCandidateFinder.getCandidates(
@@ -74,6 +68,10 @@ void Recogniser::start(FileSource& fileSource,
 				PRINT_LINE_DEBUG;
 				auto signs = templateMatchingDetector.getSigns(normalised,
 						candidates);
+				cv::imwrite(
+						"debug_" + fileSource.getCurrentFileName()
+								+ "_templateMatchingDetector" + ".png",
+						templateMatchingDetector.getDebugImage());
 				PRINT_LINE_DEBUG;
 				cv::Mat resultImage = source.clone();
 				std::cout << " #Signs: " << signs.size();
@@ -83,8 +81,6 @@ void Recogniser::start(FileSource& fileSource,
 					std::string recognised =
 							nearestNeighbourRecogniser.recognise(normalised,
 									sign);
-					std::cout << "re: " << recognised << "  si: " << sign
-							<< std::endl;
 					PRINT_LINE_DEBUG;
 					bool schoolSignFound = false;
 					if (!recognised.empty()) {
@@ -114,15 +110,15 @@ void Recogniser::start(FileSource& fileSource,
 				saveResults(fileSource.getCurrentFileName(), resultImage,
 						result.get());
 			}
-			PRINT_LINE_DEBUG;
 			if (evaluator) {
 				evaluator->addMeasurement(result.get(),
 						fileSource.getCurrentFileName() + ".png");
 			}
-			std::cout << std::endl;
+			std::cout << "Processing end." << std::endl;
 
 		} catch (boost::exception& ex) {
 			// error handling
+			PRINT_LINE_DEBUG;
 			std::cout << boost::diagnostic_information(ex);
 		}
 	}
