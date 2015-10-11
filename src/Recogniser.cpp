@@ -201,7 +201,6 @@ void Recogniser::separateResults(
 	for (auto result : results) {
 		auto image = resultImageFile(result.fileName);
 		auto data = resultDataFile(result.fileName);
-		std::cout << image << "  im    " << data << std::endl;
 		if (boost::filesystem::exists(image)) {
 			boost::filesystem::rename(image,
 					destinationFolder + "/" + result.fileName + ".png");
