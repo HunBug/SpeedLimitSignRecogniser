@@ -28,6 +28,13 @@ NearestNeighbourRecogniser::~NearestNeighbourRecogniser() {
 
 std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 		cv::Rect signPosition) {
+	//Increase search ROI;
+	const int INCREASE_SIZE = 3;
+	signPosition.x -= INCREASE_SIZE;
+	signPosition.y -= INCREASE_SIZE;
+	signPosition.width += 2 * INCREASE_SIZE;
+	signPosition.height += 2 * INCREASE_SIZE;
+	ImagingTools::shrinkRoiToImage(fullImage, signPosition);
 	cv::Mat sign = fullImage(signPosition);
 	_debug_image = fullImage.clone();
 	_debug_signPosition = signPosition;
@@ -159,6 +166,7 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 	}
 	bool isRoiFound = candidateIndices.size() >= 2;
 	if (isRoiFound) {
+		//TODO better criterion on filtering. Focusing on false positive border matches!
 		while (candidateIndices.size() > 2) {
 			//find the weakest
 			int weakestIndex = 0;
