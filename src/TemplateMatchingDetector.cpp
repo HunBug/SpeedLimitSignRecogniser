@@ -54,9 +54,7 @@ cv::Mat TemplateMatchingDetector::getSignTemplate() {
 }
 
 std::vector<double> TemplateMatchingDetector::getTemplateScales() {
-	//IMPORTANT use it in increasing order because the template
-	//			matching algorithm assumes this! (Prefer bigger scale
-	//			with same matching-value)
+	//TODO revisit scales;
 	static std::vector<double> scales { .30, .35, .4, .35, .5, .55, .75, .85,
 			1.0 };
 	return scales;

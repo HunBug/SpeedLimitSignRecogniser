@@ -11,6 +11,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include "DebugTools.h"
+#include "ImagingTools.h"
 
 namespace slsr {
 
@@ -43,26 +44,38 @@ std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 }
 
 cv::Mat NearestNeighbourRecogniser::getSchoolTemplate() {
-
+	static cv::Mat school;
+	if (school.empty()) {
+		school = cv::imread("school.png");
+	}
+	return school;
 }
 
 bool NearestNeighbourRecogniser::checkSchoolHeader(cv::Mat fullImage,
 		cv::Rect mainSignPosition) {
-	cv::Rect schoolSearchRectangle;
-	schoolSearchRectangle.x = mainSignPosition.x - mainSignPosition.width / 2;
-	schoolSearchRectangle.y = mainSignPosition.y - mainSignPosition.height / 2;
-	schoolSearchRectangle.width = 2 * mainSignPosition.width;
-	schoolSearchRectangle.height = mainSignPosition.height;
+	cv::Rect schoolSearchRoi;
+	schoolSearchRoi.x = mainSignPosition.x - mainSignPosition.width / 2;
+	schoolSearchRoi.y = mainSignPosition.y - mainSignPosition.height / 2;
+	schoolSearchRoi.width = 2 * mainSignPosition.width;
+	schoolSearchRoi.height = mainSignPosition.height;
+	ImagingTools::shrinkRoiToImage(fullImage, schoolSearchRoi);
 
+	//TODO revisit scales;
+	static std::vector<double> scales { .30, .35, .4, .35, .5, .55, .75, .85,
+			1.0 };
 	cv::Mat result;
-	cv::matchTemplate(fullImage(schoolSearchRectangle), getSchoolTemplate(),
-			result, CV_TM_CCOEFF_NORMED);
+	double resultScale;
+	double matchValue;
+	ImagingTools::multiScaleTemplateMatching(fullImage(schoolSearchRoi),
+			getSchoolTemplate(), scales, resultScale, matchValue);
+	bool schoolSignFound = matchValue > MIN_SCHOOL_TEMPLATE_THRESHOLD;
+	std::cout << "School ize:" << matchValue << std::endl;
+	return schoolSignFound;
 }
 
 cv::Ptr<cv::ml::KNearest> NearestNeighbourRecogniser::getClassifier() {
 	//Not well docuomented, sample can be found at:
 	//http://stackoverflow.com/questions/28035484/opencv-3-knn-implementation
-	//TODO this is only a Q&D prototype
 	if (!m_classifier.is_initialized()) {
 		auto classifier = cv::ml::KNearest::create();
 		cv::Mat trainingResponses(getPossibleResults().size(), 1, CV_32F);

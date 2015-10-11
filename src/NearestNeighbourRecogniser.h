@@ -17,13 +17,14 @@ namespace slsr {
 
 class NearestNeighbourRecogniser: public IRecogniser {
 public:
+	static constexpr double MIN_SCHOOL_TEMPLATE_THRESHOLD = 0.1000;
 	NearestNeighbourRecogniser(
 			std::shared_ptr<IFeatureExtractor> featureExtractor);
 	virtual ~NearestNeighbourRecogniser();
 
 	virtual std::string recognise(cv::Mat fullImage, cv::Rect signPosition)
 			override;
-
+	bool checkSchoolHeader(cv::Mat fullImage, cv::Rect mainSignPosition);
 	std::array<short, 6> getPossibleResults() {
 		static std::array<short, 6> possibleResults { { 25, 30, 35, 45, 55, 65 } };
 		return possibleResults;
@@ -35,7 +36,7 @@ private:
 	cv::Mat getSchoolTemplate();
 	bool getNumbersRoi(cv::Mat source, cv::Rect& numbersRoi);
 	std::vector<float> getNumberFeatures(cv::Mat source);
-	bool checkSchoolHeader(cv::Mat fullImage, cv::Rect mainSignPosition);
+
 };
 
 } /* namespace slsr */

@@ -40,6 +40,10 @@ void normalizeToMax(cv::Mat source, cv::OutputArray destination) {
 
 cv::Point multiScaleTemplateMatching(cv::Mat image, cv::Mat templateImage,
 		std::vector<double> scales, double& resultScale, double& mathcValue) {
+	//IMPORTANT use it in increasing order because the template
+	//			matching algorithm assumes this! (Prefer bigger scale
+	//			with same matching-value)
+	std::sort(scales.begin(), scales.end());
 	double totalMaxTemplateValue = 0;
 	cv::Point totalMaxTemplatePosition;
 	for (auto templateScale : scales) {
@@ -47,18 +51,22 @@ cv::Point multiScaleTemplateMatching(cv::Mat image, cv::Mat templateImage,
 		cv::resize(templateImage, scaledTemplate, cv::Size(), templateScale,
 				templateScale, cv::INTER_CUBIC);
 		cv::Mat result;
-		cv::matchTemplate(image, scaledTemplate, result, CV_TM_CCOEFF_NORMED);
-		double maxTemplateValue;
-		double minTemplateValue;
-		cv::Point minTemplatePosition;
-		cv::Point maxTemplatePosition;
-		cv::minMaxLoc(result, &minTemplateValue, &maxTemplateValue,
-				&minTemplatePosition, &maxTemplatePosition);
-		//Assuming increasing template scales
-		if (totalMaxTemplateValue <= maxTemplateValue) {
-			totalMaxTemplatePosition = maxTemplatePosition;
-			totalMaxTemplateValue = maxTemplateValue;
-			resultScale = templateScale;
+		if (image.size().width > scaledTemplate.size().width
+				&& image.size().height > scaledTemplate.size().height) {
+			cv::matchTemplate(image, scaledTemplate, result,
+					CV_TM_CCOEFF_NORMED);
+			double maxTemplateValue;
+			double minTemplateValue;
+			cv::Point minTemplatePosition;
+			cv::Point maxTemplatePosition;
+			cv::minMaxLoc(result, &minTemplateValue, &maxTemplateValue,
+					&minTemplatePosition, &maxTemplatePosition);
+			//Assuming increasing template scales
+			if (totalMaxTemplateValue <= maxTemplateValue) {
+				totalMaxTemplatePosition = maxTemplatePosition;
+				totalMaxTemplateValue = maxTemplateValue;
+				resultScale = templateScale;
+			}
 		}
 	}
 

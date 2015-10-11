@@ -86,15 +86,23 @@ void Recogniser::start(FileSource& fileSource,
 					std::cout << "re: " << recognised << "  si: " << sign
 							<< std::endl;
 					PRINT_LINE_DEBUG;
+					bool schoolSignFound;
 					if (!recognised.empty()) {
+						PRINT_LINE_DEBUG;
+						schoolSignFound =
+								nearestNeighbourRecogniser.checkSchoolHeader(
+										normalised, sign);
 						result = RecognitionResult::createFoundResult(sign,
 								boost::lexical_cast<unsigned int>(recognised),
-								false);
+								schoolSignFound);
 					}
+					PRINT_LINE_DEBUG;
 					cv::Scalar textColor(0, 255, 0);
 					if (recognised.empty()) {
 						recognised = "NR";
 						textColor = cv::Scalar(0, 0, 255);
+					} else if (schoolSignFound) {
+						recognised = recognised + "S";
 					}
 					std::cout << " Rcg: " << recognised;
 					cv::putText(resultImage, recognised,
