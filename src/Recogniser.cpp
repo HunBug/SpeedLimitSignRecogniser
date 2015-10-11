@@ -68,10 +68,10 @@ void Recogniser::start(FileSource& fileSource,
 				PRINT_LINE_DEBUG;
 				auto signs = templateMatchingDetector.getSigns(normalised,
 						candidates);
-				cv::imwrite(
-						"debug_" + fileSource.getCurrentFileName()
-								+ "_templateMatchingDetector" + ".png",
-						templateMatchingDetector.getDebugImage());
+				if (isEnableDebug()) {
+					cv::imwrite(debugTMName(fileSource.getCurrentFileName()),
+							templateMatchingDetector.getDebugImage());
+				}
 				PRINT_LINE_DEBUG;
 				cv::Mat resultImage = source.clone();
 				std::cout << " #Signs: " << signs.size();
@@ -81,10 +81,11 @@ void Recogniser::start(FileSource& fileSource,
 					std::string recognised =
 							nearestNeighbourRecogniser.recognise(normalised,
 									sign);
-					cv::imwrite(
-							"debug_" + fileSource.getCurrentFileName()
-									+ "_nearestNeighbourRecogniser" + ".png",
-							nearestNeighbourRecogniser.getDebugImage());
+					if (isEnableDebug()) {
+						cv::imwrite(
+								debugkNName(fileSource.getCurrentFileName()),
+								nearestNeighbourRecogniser.getDebugImage());
+					}
 					PRINT_LINE_DEBUG;
 					bool schoolSignFound = false;
 					if (!recognised.empty()) {
@@ -137,6 +138,18 @@ void Recogniser::start(FileSource& fileSource,
 		std::cout << "F1 score: " << results.f1Score() << " (Recall: "
 				<< results.recall() << "  Precision: " << results.precision()
 				<< ")" << std::endl;
+
+		debugMoveResults(results.falsePositive, "DebugFalsePositive");
+		debugMoveResults(results.falseNegative, "DebugFalseNegative");
+		debugMoveResults(results.truePositive, "DebugTruePositive");
+		debugMoveResults(results.trueNegative, "DebugTrueNegative");
+
+		if (isSeparateResults()) {
+			separateResults(results.falsePositive, "ResultFalsePositive");
+			separateResults(results.falseNegative, "ResultFalseNegative");
+			separateResults(results.truePositive, "ResultTruePositive");
+			separateResults(results.trueNegative, "ResultTrueNegative");
+		}
 	}
 }
 
@@ -155,6 +168,18 @@ boost::optional<RecognitionResult> Recogniser::loadResultIfAvailable(
 	return result;
 }
 
+std::string Recogniser::resultDataFile(std::string sourceName) {
+	boost::filesystem::path imageStem(sourceName);
+	auto fileName = imageStem.stem().string();
+	return "Results/" + fileName + ".res";
+}
+
+std::string Recogniser::resultImageFile(std::string sourceName) {
+	boost::filesystem::path imageStem(sourceName);
+	auto fileName = imageStem.stem().string();
+	return "Results/" + fileName + "_res.png";
+}
+
 void Recogniser::saveResults(std::string imagePath, cv::Mat resultImage,
 		RecognitionResult recoknitionResult) {
 	boost::filesystem::create_directory("Results");
@@ -163,6 +188,55 @@ void Recogniser::saveResults(std::string imagePath, cv::Mat resultImage,
 		std::ofstream streamWriter("Results/" + imagePath + ".res");
 		boost::archive::text_oarchive textArchiver(streamWriter);
 		textArchiver << recoknitionResult;
+	}
+}
+
+void Recogniser::separateResults(
+		const std::vector<Evaluator::ResultElement>& results,
+		std::string destinationFolder) {
+	std::cout << "Moving " + destinationFolder + " result files..."
+			<< std::endl;
+	boost::filesystem::create_directory(destinationFolder);
+	for (auto result : results) {
+		auto image = resultImageFile(result.fileName);
+		auto data = resultDataFile(result.fileName);
+		if (boost::filesystem::exists(image)) {
+			boost::filesystem::rename(image,
+					destinationFolder + "/" + result.fileName + ".png");
+		}
+		if (boost::filesystem::exists(data)) {
+			boost::filesystem::rename(data,
+					destinationFolder + "/" + result.fileName + ".res");
+		}
+	}
+}
+
+std::string Recogniser::debugTMName(std::string sourceName) {
+	boost::filesystem::path imageStem(sourceName);
+	auto fileName = imageStem.stem().string();
+	return "debug_" + fileName + "_10templateMatchingDetector" + ".png";
+}
+
+std::string Recogniser::debugkNName(std::string sourceName) {
+	boost::filesystem::path imageStem(sourceName);
+	auto fileName = imageStem.stem().string();
+	return "debug_" + fileName + "_20nearestNeighbourRecogniser" + ".png";
+}
+
+void Recogniser::debugMove(std::string sourceFile, std::string directoryName) {
+	boost::filesystem::create_directory(directoryName);
+	if (boost::filesystem::exists(sourceFile)) {
+		boost::filesystem::rename(sourceFile, directoryName + "/" + sourceFile);
+	}
+}
+
+void Recogniser::debugMoveResults(
+		const std::vector<Evaluator::ResultElement>& results,
+		std::string destinationFolder) {
+	std::cout << "Moving " + destinationFolder + " debug files..." << std::endl;
+	for (auto result : results) {
+		debugMove(debugTMName(result.fileName), destinationFolder);
+		debugMove(debugkNName(result.fileName), destinationFolder);
 	}
 }
 

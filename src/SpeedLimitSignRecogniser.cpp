@@ -24,7 +24,6 @@ int main(int argc, char* argv[]) {
 	//Handle command line arguments
 	std::string path;
 	std::string annotationFile;
-	bool isDirectory;
 	po::options_description parameterDescription(
 			"Allowed options\nOnly one file or directory path can be set.");
 	parameterDescription.add_options()("help", "Show help.")("f",
@@ -32,7 +31,8 @@ int main(int argc, char* argv[]) {
 			po::value < std::string > (&path), "directory")("a",
 			po::value < std::string > (&annotationFile),
 			"annotation file for performance statistics")("force",
-			"force re-process");
+			"force re-process")("debug", "enable debug images")("separate",
+			"separate result images");
 	po::variables_map parametersMap;
 	po::store(po::parse_command_line(argc, argv, parameterDescription),
 			parametersMap);
@@ -46,7 +46,9 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	bool isReprocess = parametersMap.count("force") > 0;
-	isDirectory = (parametersMap.count("d") == 1);
+	bool isDirectory = (parametersMap.count("d") == 1);
+	bool isSeparateResults = parametersMap.count("separate") > 0;
+	bool isDebug = parametersMap.count("debug") > 0;
 	std::shared_ptr < Evaluator > evaluator;
 	if (parametersMap.count("a") == 1) {
 		std::cout << "Reading annotation file..." << std::endl;
@@ -58,6 +60,8 @@ int main(int argc, char* argv[]) {
 
 	Recogniser recogniser;
 	recogniser.setLoadResultIfAvailable(!isReprocess);
+	recogniser.setEnableDebug(isDebug);
+	recogniser.setSeparateResults(isSeparateResults);
 	recogniser.start(fileSource, evaluator);
 
 	return 0;
