@@ -60,6 +60,8 @@ private:
 	void separateResults(const std::vector<Evaluator::ResultElement>& results,
 			std::string destinationFolder);
 
+	//Boost remove everything after first dot '.'
+	std::string getFilenamrWithoutExtension(std::string path);
 	std::string debugTMName(std::string sourceName);
 	std::string debugkNName(std::string sourceName);
 	void debugMove(std::string sourceFile, std::string directoryName);

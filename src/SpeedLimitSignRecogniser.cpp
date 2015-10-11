@@ -54,7 +54,6 @@ int main(int argc, char* argv[]) {
 		std::cout << "Reading annotation file..." << std::endl;
 		evaluator.reset(new Evaluator(annotationFile));
 	}
-
 	FileSource fileSource;
 	fileSource.setSourcePath(path, isDirectory);
 

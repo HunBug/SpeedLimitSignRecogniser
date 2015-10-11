@@ -37,6 +37,9 @@ Recogniser::~Recogniser() {
 
 void Recogniser::start(FileSource& fileSource,
 		std::shared_ptr<Evaluator> evaluator) {
+	std::cout << "Start - Debug: " << isEnableDebug() << " Separate: "
+			<< isSeparateResults() << " Load: " << isLoadResultIfAvailable()
+			<< std::endl;
 	NoiseRemover noiseRemover;
 	//std::vector<double> scales { 30, 35, 40, 45, 50, 60, 70 };
 	std::vector<double> scales { 60 };
@@ -169,23 +172,21 @@ boost::optional<RecognitionResult> Recogniser::loadResultIfAvailable(
 }
 
 std::string Recogniser::resultDataFile(std::string sourceName) {
-	boost::filesystem::path imageStem(sourceName);
-	auto fileName = imageStem.stem().string();
+	auto fileName = getFilenamrWithoutExtension(sourceName);
 	return "Results/" + fileName + ".res";
 }
 
 std::string Recogniser::resultImageFile(std::string sourceName) {
-	boost::filesystem::path imageStem(sourceName);
-	auto fileName = imageStem.stem().string();
+	auto fileName = getFilenamrWithoutExtension(sourceName);
 	return "Results/" + fileName + "_res.png";
 }
 
 void Recogniser::saveResults(std::string imagePath, cv::Mat resultImage,
 		RecognitionResult recoknitionResult) {
 	boost::filesystem::create_directory("Results");
-	cv::imwrite("Results/" + imagePath + "_res.png", resultImage);
+	cv::imwrite(resultImageFile(imagePath + ".png"), resultImage);
 	{
-		std::ofstream streamWriter("Results/" + imagePath + ".res");
+		std::ofstream streamWriter(resultDataFile(imagePath + ".png"));
 		boost::archive::text_oarchive textArchiver(streamWriter);
 		textArchiver << recoknitionResult;
 	}
@@ -200,6 +201,7 @@ void Recogniser::separateResults(
 	for (auto result : results) {
 		auto image = resultImageFile(result.fileName);
 		auto data = resultDataFile(result.fileName);
+		std::cout << image << "  im    " << data << std::endl;
 		if (boost::filesystem::exists(image)) {
 			boost::filesystem::rename(image,
 					destinationFolder + "/" + result.fileName + ".png");
@@ -212,14 +214,12 @@ void Recogniser::separateResults(
 }
 
 std::string Recogniser::debugTMName(std::string sourceName) {
-	boost::filesystem::path imageStem(sourceName);
-	auto fileName = imageStem.stem().string();
+	auto fileName = getFilenamrWithoutExtension(sourceName);
 	return "debug_" + fileName + "_10templateMatchingDetector" + ".png";
 }
 
 std::string Recogniser::debugkNName(std::string sourceName) {
-	boost::filesystem::path imageStem(sourceName);
-	auto fileName = imageStem.stem().string();
+	auto fileName = getFilenamrWithoutExtension(sourceName);
 	return "debug_" + fileName + "_20nearestNeighbourRecogniser" + ".png";
 }
 
@@ -230,13 +230,21 @@ void Recogniser::debugMove(std::string sourceFile, std::string directoryName) {
 	}
 }
 
+std::string Recogniser::getFilenamrWithoutExtension(std::string path) {
+	boost::filesystem::path imageStem(path);
+	auto fileName = imageStem.filename().string();
+	return fileName.substr(0, fileName.size() - 4);
+}
+
 void Recogniser::debugMoveResults(
 		const std::vector<Evaluator::ResultElement>& results,
 		std::string destinationFolder) {
 	std::cout << "Moving " + destinationFolder + " debug files..." << std::endl;
 	for (auto result : results) {
-		debugMove(debugTMName(result.fileName), destinationFolder);
-		debugMove(debugkNName(result.fileName), destinationFolder);
+		debugMove(debugTMName(getFilenamrWithoutExtension(result.fileName)),
+				destinationFolder);
+		debugMove(debugkNName(getFilenamrWithoutExtension(result.fileName)),
+				destinationFolder);
 	}
 }
 
