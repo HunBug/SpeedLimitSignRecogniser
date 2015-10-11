@@ -32,8 +32,10 @@ private:
 	boost::optional<cv::Ptr<cv::ml::KNearest>> m_classifier;
 
 	cv::Ptr<cv::ml::KNearest> getClassifier();
+	cv::Mat getSchoolTemplate();
 	bool getNumbersRoi(cv::Mat source, cv::Rect& numbersRoi);
-	std::vector<float> getFeature(cv::Mat source);
+	std::vector<float> getNumberFeatures(cv::Mat source);
+	bool checkSchoolHeader(cv::Mat fullImage, cv::Rect mainSignPosition);
 };
 
 } /* namespace slsr */

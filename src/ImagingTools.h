@@ -19,6 +19,9 @@ void createEmptyImageWithBorder(cv::Mat source, cv::OutputArray destination,
 void removeImageBorder(cv::Mat source, cv::OutputArray destination,
 		unsigned int borderSize);
 void normalizeToMax(cv::Mat source, cv::OutputArray destination);
+cv::Point multiScaleTemplateMatching(cv::Mat image, cv::Mat templateImage,
+		std::vector<double> scales, double& resultScale, double& mathcValue);
+bool shrinkRoiToImage(cv::Mat image, cv::Rect& roi);
 
 }/* ImagingTools */
 } /* namespace slsr */

@@ -34,18 +34,29 @@ std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 	if (!roiFound) {
 		return "";
 	}
-	/*cv::Mat debugIm = sign.clone();
-	 cv::rectangle(debugIm, numbersRoi, cv::Scalar(255));
-	 cv::imwrite("numbersRect.png", debugIm);*/
 	cv::Mat numbers = sign(numbersRoi);
-//	cv::cvtColor(numbers, numbers, CV_BGR2GRAY);
-	cv::resize(numbers, numbers, cv::Size(25, 15), cv::INTER_CUBIC);
-	cv::normalize(numbers, numbers, 0, 255, cv::NORM_MINMAX);
+	auto numberFeatures = getNumberFeatures(numbers);
 	auto classifier = getClassifier();
 	std::vector<float> result;
-	classifier->findNearest(getFeatureExtractor()->extractFeatures(numbers),
-			classifier->getDefaultK(), result);
+	classifier->findNearest(numberFeatures, classifier->getDefaultK(), result);
 	return boost::lexical_cast < std::string > (result[0]);
+}
+
+cv::Mat NearestNeighbourRecogniser::getSchoolTemplate() {
+
+}
+
+bool NearestNeighbourRecogniser::checkSchoolHeader(cv::Mat fullImage,
+		cv::Rect mainSignPosition) {
+	cv::Rect schoolSearchRectangle;
+	schoolSearchRectangle.x = mainSignPosition.x - mainSignPosition.width / 2;
+	schoolSearchRectangle.y = mainSignPosition.y - mainSignPosition.height / 2;
+	schoolSearchRectangle.width = 2 * mainSignPosition.width;
+	schoolSearchRectangle.height = mainSignPosition.height;
+
+	cv::Mat result;
+	cv::matchTemplate(fullImage(schoolSearchRectangle), getSchoolTemplate(),
+			result, CV_TM_CCOEFF_NORMED);
 }
 
 cv::Ptr<cv::ml::KNearest> NearestNeighbourRecogniser::getClassifier() {
@@ -55,33 +66,28 @@ cv::Ptr<cv::ml::KNearest> NearestNeighbourRecogniser::getClassifier() {
 	if (!m_classifier.is_initialized()) {
 		auto classifier = cv::ml::KNearest::create();
 		cv::Mat trainingResponses(getPossibleResults().size(), 1, CV_32F);
-		std::cout << "ts: " << trainingResponses.size() << std::endl;
-		boost::optional < cv::Mat > trainingSamples;
+		cv::Mat trainingSamples;
 		for (size_t templateIndex = 0;
 				templateIndex < getPossibleResults().size(); templateIndex++) {
 			short currentTemplateValue = getPossibleResults()[templateIndex];
-			std::cout << "curval " << currentTemplateValue << std::endl;
 			trainingResponses.at<float>(templateIndex) =
 					static_cast<float>(currentTemplateValue);
 			std::string fileName = boost::lexical_cast < std::string
 					> (currentTemplateValue) + ".png";
 			cv::Mat templateImage = cv::imread(fileName, cv::IMREAD_GRAYSCALE);
-			auto features = getFeature(templateImage);
+			auto features = getNumberFeatures(templateImage);
 
-			if (!trainingSamples.is_initialized()) {
+			if (trainingSamples.empty()) {
 				trainingSamples = cv::Mat(0, features.size(), CV_32F);
-				std::cout << "tsa: " << trainingResponses.size() << std::endl;
 			}
 
 			auto featureRow = cv::Mat(features);
-			std::cout << "fr: " << featureRow.size() << std::endl;
 			cv::transpose(featureRow, featureRow);
-			trainingSamples.get().push_back(featureRow);
+			trainingSamples.push_back(featureRow);
 		}
 
-		auto trainingData = cv::ml::TrainData::create(trainingSamples.get(),
+		auto trainingData = cv::ml::TrainData::create(trainingSamples,
 				cv::ml::SampleTypes::ROW_SAMPLE, trainingResponses);
-		std::cout << trainingResponses << std::endl;
 		classifier->setIsClassifier(true);
 		classifier->setAlgorithmType(cv::ml::KNearest::Types::BRUTE_FORCE);
 		classifier->setDefaultK(1);
@@ -149,13 +155,13 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 	return isRoiFound;
 }
 
-std::vector<float> NearestNeighbourRecogniser::getFeature(cv::Mat source) {
+std::vector<float> NearestNeighbourRecogniser::getNumberFeatures(
+		cv::Mat source) {
 	if (source.channels() > 1) {
 		cv::cvtColor(source, source, CV_8U);
 	}
 	cv::resize(source, source, cv::Size(25, 15), cv::INTER_CUBIC);
 	cv::normalize(source, source, 0, 255, cv::NORM_MINMAX);
-	cv::imwrite("templatesample.png", source);
 	return getFeatureExtractor()->extractFeatures(source);
 }
 
