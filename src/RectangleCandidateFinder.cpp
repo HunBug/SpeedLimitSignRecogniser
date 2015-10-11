@@ -36,8 +36,7 @@ RectangleCandidateFinder::~RectangleCandidateFinder() {
 	// TODO Auto-generated destructor stub
 }
 
-cv::Mat RectangleCandidateFinder::getCandidates(
-		cv::Mat source) {
+cv::Mat RectangleCandidateFinder::getCandidates(cv::Mat source) {
 
 	cv::Mat workImage;
 	preprocess(source, workImage);
@@ -51,7 +50,7 @@ cv::Mat RectangleCandidateFinder::getCandidates(
 	cv::Mat absGradientMapY;
 	convertScaleAbs(gradientMapX, absGradientMapX);
 	convertScaleAbs(gradientMapY, absGradientMapY);
-	cv::Mat voteMap(workImage.size(), cv::DataType<GradientType>::type, 0);
+	cv::Mat voteMap(workImage.size(), cv::DataType < GradientType > ::type, 0);
 	for (auto scale : this->m_scales) {
 		unsigned int width = (unsigned int) (this->m_rectangleAspectRation
 				* scale);
@@ -62,13 +61,13 @@ cv::Mat RectangleCandidateFinder::getCandidates(
 	}
 
 	/*cv::Mat debugVoteImage;
-	ImagingTools::normalizeToMax(voteMap, debugVoteImage);
-	cv::Point cornerVector(30/ 2, 40/ 2);
-	cv::imwrite("voteMap.png", debugVoteImage);
-	cv::addWeighted(workImage, 0.75, debugVoteImage, 0.25, 0.0, workImage);
-	cv::rectangle(workImage, max_loc - cornerVector, max_loc + cornerVector,
-			cv::Scalar(255));
-	cv::imwrite("votes.png", workImage);*/
+	 ImagingTools::normalizeToMax(voteMap, debugVoteImage);
+	 cv::Point cornerVector(30/ 2, 40/ 2);
+	 cv::imwrite("voteMap.png", debugVoteImage);
+	 cv::addWeighted(workImage, 0.75, debugVoteImage, 0.25, 0.0, workImage);
+	 cv::rectangle(workImage, max_loc - cornerVector, max_loc + cornerVector,
+	 cv::Scalar(255));
+	 cv::imwrite("votes.png", workImage);*/
 
 	return voteMap;
 }
@@ -92,10 +91,10 @@ void RectangleCandidateFinder::calulateGradients(cv::Mat source,
 	cv::Mat workGradientMapX;
 	cv::Mat workGradientMapY;
 
-	Sobel(source, workGradientMapX, cv::DataType<GradientType>::type, 1, 0, 3,
-			1, 0, cv::BORDER_DEFAULT);
-	Sobel(source, workGradientMapY, cv::DataType<GradientType>::type, 0, 1, 3,
-			1, 0, cv::BORDER_DEFAULT);
+	Sobel(source, workGradientMapX, cv::DataType < GradientType > ::type, 1, 0,
+			3, 1, 0, cv::BORDER_DEFAULT);
+	Sobel(source, workGradientMapY, cv::DataType < GradientType > ::type, 0, 1,
+			3, 1, 0, cv::BORDER_DEFAULT);
 
 	workGradientMapX.copyTo(gradientMapX);
 	workGradientMapY.copyTo(gradientMapY);
@@ -125,8 +124,8 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 	assert(gradientMapX.size() == absGradientMapY.size());
 	for (unsigned int y = 0;
 			y < static_cast<unsigned int>(gradientMapX.size().height); ++y) {
-		GradientType* pGradientX = gradientMapX.ptr<GradientType>(y);
-		GradientType* pGradientY = gradientMapY.ptr<GradientType>(y);
+		GradientType* pGradientX = gradientMapX.ptr < GradientType > (y);
+		GradientType* pGradientY = gradientMapY.ptr < GradientType > (y);
 		unsigned char* pAbsGradientX = absGradientMapX.ptr<unsigned char>(y);
 		unsigned char* pAbsGradientY = absGradientMapY.ptr<unsigned char>(y);
 		for (unsigned int x = 0;
@@ -138,15 +137,17 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 			float approxMagnitude = absGradientX + absGradientY;
 			if (approxMagnitude < MIN_GRADIENT_THRESHOLD) {
 				//If no edge then a little down-vote
-				downVotes.at<GradientType>(y + height / 2 + borderSize,
-						x + borderSize) -= 2 * MIN_GRADIENT_THRESHOLD;
-				upVotes.at<GradientType>(y - height / 2 + borderSize,
-						x + borderSize) -= 2 * MIN_GRADIENT_THRESHOLD;
-				leftVotes.at<GradientType>(y + borderSize,
-						x - width / 2 + borderSize) -= 2
+				downVotes.at < GradientType
+						> (y + height / 2 + borderSize, x + borderSize) -= 2
 						* MIN_GRADIENT_THRESHOLD;
-				rightVotes.at<GradientType>(y + borderSize,
-						x + width / 2 + borderSize) -= 2
+				upVotes.at < GradientType
+						> (y - height / 2 + borderSize, x + borderSize) -= 2
+						* MIN_GRADIENT_THRESHOLD;
+				leftVotes.at < GradientType
+						> (y + borderSize, x - width / 2 + borderSize) -= 2
+						* MIN_GRADIENT_THRESHOLD;
+				rightVotes.at < GradientType
+						> (y + borderSize, x + width / 2 + borderSize) -= 2
 						* MIN_GRADIENT_THRESHOLD;
 			} else {
 				giveVotesatPoint(leftVotes, downVotes, rightVotes, upVotes,
@@ -177,35 +178,35 @@ cv::Mat RectangleCandidateFinder::buildVoteMap(unsigned int width,
 	//TODO return aggreagted or separated votes? Return rectangle sizes too.
 	cv::Mat votes = downVotes + leftVotes + upVotes + rightVotes;
 	/*cv::imwrite(
-			(boost::lexical_cast<std::string>(width) + "votesdownMask.png").c_str(),
-			downMask);
-	cv::imwrite(
-			(boost::lexical_cast<std::string>(width) + "votesupMask.png").c_str(),
-			upMask);
-	cv::imwrite(
-			(boost::lexical_cast<std::string>(width) + "votesrightMask.png").c_str(),
-			rightMask);
-	cv::imwrite(
-			(boost::lexical_cast<std::string>(width) + "votesleftMask.png").c_str(),
-			leftMask);
-	cv::imwrite(
-			(boost::lexical_cast<std::string>(width) + "votesMask.png").c_str(),
-			mask);*/
+	 (boost::lexical_cast<std::string>(width) + "votesdownMask.png").c_str(),
+	 downMask);
+	 cv::imwrite(
+	 (boost::lexical_cast<std::string>(width) + "votesupMask.png").c_str(),
+	 upMask);
+	 cv::imwrite(
+	 (boost::lexical_cast<std::string>(width) + "votesrightMask.png").c_str(),
+	 rightMask);
+	 cv::imwrite(
+	 (boost::lexical_cast<std::string>(width) + "votesleftMask.png").c_str(),
+	 leftMask);
+	 cv::imwrite(
+	 (boost::lexical_cast<std::string>(width) + "votesMask.png").c_str(),
+	 mask);*/
 	mask.convertTo(mask, CV_8UC1);
 	cv::Mat maskedVotes;
 	votes.copyTo(maskedVotes, mask);
 
 	/*cv::Mat combined;
-	ImagingTools::normalizeToMax(maskedVotes, combined);
-	cv::imwrite(
-			(boost::lexical_cast<std::string>(width) + "votesCombined.png").c_str(),
-			combined);
+	 ImagingTools::normalizeToMax(maskedVotes, combined);
+	 cv::imwrite(
+	 (boost::lexical_cast<std::string>(width) + "votesCombined.png").c_str(),
+	 combined);
 
-	cv::Mat maskedVotesAll = leftVotes + rightVotes + upVotes + downVotes;
-	ImagingTools::normalizeToMax(maskedVotesAll, combined);
-	cv::imwrite(
-			(boost::lexical_cast<std::string>(width) + "votesCombinedAll.png").c_str(),
-			combined);*/
+	 cv::Mat maskedVotesAll = leftVotes + rightVotes + upVotes + downVotes;
+	 ImagingTools::normalizeToMax(maskedVotesAll, combined);
+	 cv::imwrite(
+	 (boost::lexical_cast<std::string>(width) + "votesCombinedAll.png").c_str(),
+	 combined);*/
 	return maskedVotes;
 }
 
@@ -237,21 +238,42 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat leftVotes,
 						y - (height / 2) : y + (height / 2);
 		auto& votes = isUp ? upVotes : downVotes;
 		//Draw horizontal votes
-		for (int distanceStep = 0; distanceStep < votingDistance;
-				distanceStep++) {
-			votes.at<GradientType>(votePointY + borderSize,
-					votePointX + borderSize + distanceStep) += votingMagnitude;
-			votes.at<GradientType>(votePointY + borderSize,
-					votePointX + borderSize - distanceStep) += votingMagnitude;
-			votes.at<GradientType>(votePointY + borderSize,
-					votePointX + borderSize + votingDistance + distanceStep) -=
-					votingMagnitude;
-			votes.at<GradientType>(votePointY + borderSize,
-					votePointX + borderSize - votingDistance - distanceStep) -=
-					votingMagnitude;
+		auto pLine = votes.ptr < GradientType > (votePointY + borderSize);
+		pLine += votePointX + borderSize;
+		for (int leftDownVote = 0; leftDownVote < votingDistance;
+				leftDownVote++) {
+			*pLine -= votingMagnitude;
+			++pLine;
 		}
+		for (int innerUpVote = 0; innerUpVote < 2 * votingDistance;
+				innerUpVote++) {
+			*pLine += votingMagnitude;
+			++pLine;
+		}
+		for (int rightDownVote = 0; rightDownVote < votingDistance;
+				rightDownVote++) {
+			*pLine -= votingMagnitude;
+			++pLine;
+		}
+		//Origianl, Non-optimised code
+		/*for (int distanceStep = 0; distanceStep < votingDistance;
+		 distanceStep++) {
+		 votes.at < GradientType
+		 > (votePointY + borderSize, votePointX + borderSize
+		 + distanceStep) += votingMagnitude;
+		 votes.at < GradientType
+		 > (votePointY + borderSize, votePointX + borderSize
+		 - distanceStep) += votingMagnitude;
+		 votes.at < GradientType
+		 > (votePointY + borderSize, votePointX + borderSize
+		 + votingDistance + distanceStep) -= votingMagnitude;
+		 votes.at < GradientType
+		 > (votePointY + borderSize, votePointX + borderSize
+		 - votingDistance - distanceStep) -= votingMagnitude;
+		 }*/
 	} else {
 		//Draw vertical votes
+		//TODO optimise this direction too
 		double votingDistance = static_cast<GradientType>(width / 2);
 		bool isLeft = gradientY < 0;
 		int votePointX =
@@ -261,16 +283,18 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat leftVotes,
 		auto& votes = isLeft ? leftVotes : rightVotes;
 		for (int distanceStep = 0; distanceStep < votingDistance;
 				distanceStep++) {
-			votes.at<GradientType>(votePointY + borderSize + distanceStep,
-					votePointX + borderSize) += votingMagnitude;
-			votes.at<GradientType>(votePointY + borderSize - distanceStep,
-					votePointX + borderSize) += votingMagnitude;
-			votes.at<GradientType>(
-					votePointY + borderSize + votingDistance + distanceStep,
-					votePointX + borderSize) -= votingMagnitude;
-			votes.at<GradientType>(
-					votePointY + borderSize - votingDistance - distanceStep,
-					votePointX + borderSize) -= votingMagnitude;
+			votes.at < GradientType
+					> (votePointY + borderSize + distanceStep, votePointX
+							+ borderSize) += votingMagnitude;
+			votes.at < GradientType
+					> (votePointY + borderSize - distanceStep, votePointX
+							+ borderSize) += votingMagnitude;
+			votes.at < GradientType
+					> (votePointY + borderSize + votingDistance + distanceStep, votePointX
+							+ borderSize) -= votingMagnitude;
+			votes.at < GradientType
+					> (votePointY + borderSize - votingDistance - distanceStep, votePointX
+							+ borderSize) -= votingMagnitude;
 		}
 	}
 }
