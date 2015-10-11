@@ -29,7 +29,7 @@ NearestNeighbourRecogniser::~NearestNeighbourRecogniser() {
 std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 		cv::Rect signPosition) {
 	//Increase search ROI;
-	const int INCREASE_SIZE = 3;
+	const int INCREASE_SIZE = 2;
 	signPosition.x -= INCREASE_SIZE;
 	signPosition.y -= INCREASE_SIZE;
 	signPosition.width += 2 * INCREASE_SIZE;
@@ -90,7 +90,7 @@ bool NearestNeighbourRecogniser::checkSchoolHeader(cv::Mat fullImage,
 	ImagingTools::multiScaleTemplateMatching(fullImage(schoolSearchRoi),
 			getSchoolTemplate(), scales, resultScale, matchValue);
 	bool schoolSignFound = matchValue > MIN_SCHOOL_TEMPLATE_THRESHOLD;
-	std::cout << "School ize:" << matchValue << std::endl;
+	std::cout << "School value:" << matchValue << std::endl;
 	return schoolSignFound;
 }
 
@@ -154,11 +154,17 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 	for (int contourIndex = 0; contourIndex < contours.size(); contourIndex++) {
 		auto& contour = contours[contourIndex];
 		bool areaOk = cv::contourArea(contour) > 30;
+		areaOk &= cv::contourArea(contour) < 300;
 		auto boundingBox = cv::boundingRect(contour);
 		bool widthOk = boundingBox.width > 10;
 		bool heightOk = boundingBox.height > 10;
-		if (areaOk && widthOk && heightOk) {
+		double ratio = (double) boundingBox.width / boundingBox.height;
+		bool ratioOk = ratio < (0.9);
+		ratioOk &= ratio > (0.4);
+		if (areaOk && widthOk && heightOk && ratioOk) {
 			candidateIndices.push_back(contourIndex);
+			drawContours(_debug_image(_debug_signPosition), contours,
+					contourIndex, cv::Scalar(128, 0, 128), 1, 8);
 		} else {
 			drawContours(_debug_image(_debug_signPosition), contours,
 					contourIndex, cv::Scalar(0, 0, 128), 1, 8);

@@ -213,12 +213,12 @@ void Recogniser::separateResults(
 }
 
 std::string Recogniser::debugTMName(std::string sourceName) {
-	auto fileName = getFilenamrWithoutExtension(sourceName);
+	auto fileName = sourceName; // getFilenamrWithoutExtension(sourceName);
 	return "debug_" + fileName + "_10templateMatchingDetector" + ".png";
 }
 
 std::string Recogniser::debugkNName(std::string sourceName) {
-	auto fileName = getFilenamrWithoutExtension(sourceName);
+	auto fileName = sourceName; //getFilenamrWithoutExtension(sourceName);
 	return "debug_" + fileName + "_20nearestNeighbourRecogniser" + ".png";
 }
 
