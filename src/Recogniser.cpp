@@ -81,6 +81,10 @@ void Recogniser::start(FileSource& fileSource,
 					std::string recognised =
 							nearestNeighbourRecogniser.recognise(normalised,
 									sign);
+					cv::imwrite(
+							"debug_" + fileSource.getCurrentFileName()
+									+ "_nearestNeighbourRecogniser" + ".png",
+							nearestNeighbourRecogniser.getDebugImage());
 					PRINT_LINE_DEBUG;
 					bool schoolSignFound = false;
 					if (!recognised.empty()) {

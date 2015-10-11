@@ -29,6 +29,10 @@ public:
 		static std::array<short, 6> possibleResults { { 25, 30, 35, 45, 55, 65 } };
 		return possibleResults;
 	}
+
+	cv::Mat getDebugImage() {
+		return _debug_image;
+	}
 private:
 	boost::optional<cv::Ptr<cv::ml::KNearest>> m_classifier;
 
@@ -37,7 +41,9 @@ private:
 	bool getNumbersRoi(cv::Mat source, cv::Rect& numbersRoi);
 	std::vector<float> getNumberFeatures(cv::Mat source);
 
+	//Class global variables for easy debugging and avoid adding debug parameters to the interface
 	cv::Mat _debug_image;
+	cv::Rect _debug_signPosition;
 };
 
 } /* namespace slsr */

@@ -29,18 +29,32 @@ NearestNeighbourRecogniser::~NearestNeighbourRecogniser() {
 std::string NearestNeighbourRecogniser::recognise(cv::Mat fullImage,
 		cv::Rect signPosition) {
 	cv::Mat sign = fullImage(signPosition);
+	_debug_image = fullImage.clone();
+	_debug_signPosition = signPosition;
+	cv::Scalar signColor(255, 0, 0);
+	cv::rectangle(_debug_image, signPosition, signColor, 1.0);
 	cv::cvtColor(sign, sign, CV_BGR2GRAY);
 	cv::Rect numbersRoi;
 	bool roiFound = getNumbersRoi(sign, numbersRoi);
-	if (!roiFound) {
-		return "";
+	cv::Scalar numberRoiColor =
+			roiFound ? cv::Scalar(128, 255, 0) : cv::Scalar(128, 0, 255);
+	cv::Rect debugNumberRoi = numbersRoi;
+	debugNumberRoi.x += signPosition.x;
+	debugNumberRoi.y += signPosition.y;
+	cv::rectangle(_debug_image, debugNumberRoi, numberRoiColor, 1.0);
+	std::string resultText;
+	if (roiFound) {
+		cv::Mat numbers = sign(numbersRoi);
+		auto numberFeatures = getNumberFeatures(numbers);
+		auto classifier = getClassifier();
+		std::vector<float> result;
+		classifier->findNearest(numberFeatures, classifier->getDefaultK(),
+				result);
+		resultText = boost::lexical_cast < std::string > (result[0]);
+	} else {
+		resultText = "";
 	}
-	cv::Mat numbers = sign(numbersRoi);
-	auto numberFeatures = getNumberFeatures(numbers);
-	auto classifier = getClassifier();
-	std::vector<float> result;
-	classifier->findNearest(numberFeatures, classifier->getDefaultK(), result);
-	return boost::lexical_cast < std::string > (result[0]);
+	return resultText;
 }
 
 cv::Mat NearestNeighbourRecogniser::getSchoolTemplate() {
@@ -117,6 +131,12 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 	cv::threshold(source, workImage, 1, 255, cv::THRESH_OTSU);
 	//cv::imwrite("numbersThreshold.png", workImage);
 	workImage = 255 - workImage;
+	cv::Mat debugWorkImage;
+	cv::cvtColor(workImage, debugWorkImage, CV_GRAY2BGR);
+	debugWorkImage.copyTo(
+			_debug_image(
+					cv::Rect(0, 0, workImage.size().width,
+							workImage.size().height)));
 
 	//Changes workimage!
 	std::vector < std::vector<cv::Point> > contours;
@@ -132,6 +152,9 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 		bool heightOk = boundingBox.height > 10;
 		if (areaOk && widthOk && heightOk) {
 			candidateIndices.push_back(contourIndex);
+		} else {
+			drawContours(_debug_image(_debug_signPosition), contours,
+					contourIndex, cv::Scalar(0, 0, 128), 1, 8);
 		}
 	}
 	bool isRoiFound = candidateIndices.size() >= 2;
@@ -153,6 +176,8 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 			auto candidateIndicesIndex = std::find(candidateIndices.begin(),
 					candidateIndices.end(), weakestIndex);
 			assert(candidateIndicesIndex != candidateIndices.end());
+			drawContours(_debug_image(_debug_signPosition), contours,
+					weakestIndex, cv::Scalar(0, 128, 128), 1, 8);
 			candidateIndices.erase(candidateIndicesIndex);
 		}
 		assert(candidateIndices.size() == 2);
@@ -164,6 +189,10 @@ bool NearestNeighbourRecogniser::getNumbersRoi(cv::Mat source,
 				boundingBox2.x + boundingBox2.width) - numbersRoi.x;
 		numbersRoi.height = std::max(boundingBox1.y + boundingBox1.height,
 				boundingBox2.y + boundingBox2.height) - numbersRoi.y;
+		drawContours(_debug_image(_debug_signPosition), contours,
+				candidateIndices[0], cv::Scalar(0, 128, 0), 1, 8);
+		drawContours(_debug_image(_debug_signPosition), contours,
+				candidateIndices[1], cv::Scalar(0, 128, 0), 1, 8);
 	}
 	return isRoiFound;
 }
