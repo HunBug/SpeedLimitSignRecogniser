@@ -86,7 +86,7 @@ void Recogniser::start(FileSource& fileSource,
 					std::cout << "re: " << recognised << "  si: " << sign
 							<< std::endl;
 					PRINT_LINE_DEBUG;
-					bool schoolSignFound;
+					bool schoolSignFound = false;
 					if (!recognised.empty()) {
 						PRINT_LINE_DEBUG;
 						schoolSignFound =
@@ -143,7 +143,7 @@ void Recogniser::start(FileSource& fileSource,
 boost::optional<RecognitionResult> Recogniser::loadResultIfAvailable(
 		std::string imagePath) {
 	boost::optional < RecognitionResult > result;
-	std::string dataFileName = imagePath + ".res";
+	std::string dataFileName = "Results/" + imagePath + ".res";
 	if (boost::filesystem::exists(dataFileName)) {
 		std::ifstream streamReader(dataFileName);
 		boost::archive::text_iarchive textArchiver(streamReader);
@@ -157,9 +157,10 @@ boost::optional<RecognitionResult> Recogniser::loadResultIfAvailable(
 
 void Recogniser::saveResults(std::string imagePath, cv::Mat resultImage,
 		RecognitionResult recoknitionResult) {
-	cv::imwrite(imagePath + "_res.png", resultImage);
+	boost::filesystem::create_directory("Results");
+	cv::imwrite("Results/" + imagePath + "_res.png", resultImage);
 	{
-		std::ofstream streamWriter(imagePath + ".res");
+		std::ofstream streamWriter("Results/" + imagePath + ".res");
 		boost::archive::text_oarchive textArchiver(streamWriter);
 		textArchiver << recoknitionResult;
 	}
