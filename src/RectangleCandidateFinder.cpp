@@ -238,39 +238,22 @@ void RectangleCandidateFinder::giveVotesatPoint(cv::Mat leftVotes,
 						y - (height / 2) : y + (height / 2);
 		auto& votes = isUp ? upVotes : downVotes;
 		//Draw horizontal votes
-		auto pLine = votes.ptr < GradientType > (votePointY + borderSize);
-		pLine += votePointX + borderSize;
-		for (int leftDownVote = 0; leftDownVote < votingDistance;
-				leftDownVote++) {
-			*pLine -= votingMagnitude;
-			++pLine;
-		}
-		for (int innerUpVote = 0; innerUpVote < 2 * votingDistance;
-				innerUpVote++) {
-			*pLine += votingMagnitude;
-			++pLine;
-		}
-		for (int rightDownVote = 0; rightDownVote < votingDistance;
-				rightDownVote++) {
-			*pLine -= votingMagnitude;
-			++pLine;
-		}
 		//Origianl, Non-optimised code
-		/*for (int distanceStep = 0; distanceStep < votingDistance;
-		 distanceStep++) {
-		 votes.at < GradientType
-		 > (votePointY + borderSize, votePointX + borderSize
-		 + distanceStep) += votingMagnitude;
-		 votes.at < GradientType
-		 > (votePointY + borderSize, votePointX + borderSize
-		 - distanceStep) += votingMagnitude;
-		 votes.at < GradientType
-		 > (votePointY + borderSize, votePointX + borderSize
-		 + votingDistance + distanceStep) -= votingMagnitude;
-		 votes.at < GradientType
-		 > (votePointY + borderSize, votePointX + borderSize
-		 - votingDistance - distanceStep) -= votingMagnitude;
-		 }*/
+		for (int distanceStep = 0; distanceStep < votingDistance;
+				distanceStep++) {
+			votes.at < GradientType
+					> (votePointY + borderSize, votePointX + borderSize
+							+ distanceStep) += votingMagnitude;
+			votes.at < GradientType
+					> (votePointY + borderSize, votePointX + borderSize
+							- distanceStep) += votingMagnitude;
+			votes.at < GradientType
+					> (votePointY + borderSize, votePointX + borderSize
+							+ votingDistance + distanceStep) -= votingMagnitude;
+			votes.at < GradientType
+					> (votePointY + borderSize, votePointX + borderSize
+							- votingDistance - distanceStep) -= votingMagnitude;
+		}
 	} else {
 		//Draw vertical votes
 		//TODO optimise this direction too
