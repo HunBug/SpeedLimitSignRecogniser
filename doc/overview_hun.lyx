@@ -1,0 +1,1436 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass revtex4
+\options aps,preprint
+\use_default_options false
+\maintain_unincluded_children false
+\language magyar
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 0
+\use_package mhchem 1
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language polish
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+USA sebességkorlátozó tábla felismerő
+\end_layout
+
+\begin_layout Author
+Strack Ákos
+\end_layout
+
+\begin_layout Author Email
+
+akos.strack@gmail.com
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Make sure to put any Email, URL, and Thanks layouts IN
+\end_layout
+
+\begin_layout Plain Layout
+BETWEEN the Author layout and the corresponding Address
+\end_layout
+
+\begin_layout Plain Layout
+layout for that author.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author URL
+
+https://github.com/HunBug/SpeedLimitSignRecogniser
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+You don't have to write 
+\backslash
+maketitle..
+ LyX does this by itself.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Bevezetés
+\end_layout
+
+\begin_layout Standard
+Az algoritmus feladata, hogy autókba szerelt kamerák képe alapján, kizárólag
+ klasszikus képfeldolgozási eljárások használatával észlelje az egyesült
+ államokbeli sebességkorlátozó táblákat és felismerje az azokon található
+ korlátozás mértékét, esetleg egyéb kiegészítő korlátozásokat is.
+ A fejlesztés során a képfeldolgozási eljárásokon kívül programozás-technikai
+ szempontok is figyelembe lettek véve.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename graphics/schoolSpeedLimit25_1333396313.avi_image11.png.png
+	width 90text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+25-ös korlátozó tábla felismerése, 
+\begin_inset Quotes pld
+\end_inset
+
+School
+\begin_inset Quotes prd
+\end_inset
+
+ kiegészítéssel
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Módszerek
+\end_layout
+
+\begin_layout Subsection
+Módszer választása
+\end_layout
+
+\begin_layout Standard
+A feladat kiírása alapján nem lehet mesterséges intelligencia módszereket
+ használni, és bár a két terület határán lévő algoritmusokat lehetett volna
+ használni, de érdekes kihívásnak találtam, hogy kizárólag klasszikus képfeldolg
+ozó eljárásokat alkalmazzak.
+ Ezek fényében a használható eszköztára jelentősen lecsökkent, és az elolvasott
+ cikkek , és a rendelkezésre álló mintaképek alapján a kiindulási alapot
+ a Real-time Recognition of U.S.
+ Speed Signs 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "RecogSpeedSigns"
+
+\end_inset
+
+ cikke képezte.
+\end_layout
+
+\begin_layout Standard
+A választás azért esett erre a cikkre, mert a legtöbb M.I.-t nélkülöző algoritmus
+ szín vagy forma alapú szegmentálást használ az előfeldolgozás során, és
+ előzetes véleményem szerint a szín alapú szegmentálást eleve nehezebb robusztus
+sá tenni egy ennyire változatos környezetben (nappal, éjszaka, időjárási
+ viszonyok, megvilágítások), másrészt a fehér táblára nehéz megbízható kritérium
+ot találni, ami robusztusan elválasztja a háttértől.
+ A forma alapú tábla keresők közül ez a cikk írt le olyan módszereket, amikkel
+ az amerikai sebességkorlátozó táblákra jellemző tulajdonságokat hatékonyan
+ fel lehet ismerni.
+ Ez a cikk egy olyan módszert ismertet, ahol nem feltétlenül körcentrikus
+ alakzatokat, esetünkben téglalapot lehet detektálni a gradiensek alapján.
+ A cikkben módszerek bonyolultsága nem lépte át azt a szintet, amit érdemben
+ ne lehetne implementálni az adott határidőn belül és az eredmények is elég
+ meggyőzök voltak ahhoz, hogy egy kezdetleges implementációja is használható
+ eredményeket adjon.
+\end_layout
+
+\begin_layout Standard
+Mindezek mellett még szempont volt, hogy legyen olyan része a leírt algoritmusna
+k, amit nem valósítottak meg az OpenCV-ben, és érdemben lehet egy képfeldolgozó
+ algoritmus 
+\begin_inset Quotes eld
+\end_inset
+
+alacsony szintű
+\begin_inset Quotes erd
+\end_inset
+
+ implementációját bemutatni, illetve néhány saját ötletet/módosítást is
+ ki lehet próbálni.
+\end_layout
+
+\begin_layout Subsection
+Felismerési folyamat
+\end_layout
+
+\begin_layout Subsubsection
+Előfeldolgozás
+\end_layout
+
+\begin_layout Standard
+Az előfeldolgozás rész feladata a bemeneti képek normalizálása és biztosítani,
+ hogy a későbbi algoritmusok által várt előfeltételek teljesüljenek.
+ A használt LISA 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LISA"
+
+\end_inset
+
+ adatbázisban alapvetően két típusú forrás volt, a színes képek, aminek
+ minőségét első körben használhatatlannak ítéltem ilyen feladatra, ezért
+ csak az Audi rendszere által szolgáltatott nyers képekkel foglalkoztam.
+ Mivel a használt algoritmusoknak nincs szüksége szín információkra, ezért
+ itt a fő feladat az volt, hogy a Bayer mintás képből a lehető legjobb minőségű
+ és felbontású szürkeárnyalatos képet állítsam elő.
+ A demosaicing algoritmus a következőkép működik:
+\end_layout
+
+\begin_layout Enumerate
+A forrás képet 4 felé bontani a 2x2-es Bayer minta pozíciói szerint.
+\end_layout
+
+\begin_layout Enumerate
+Az így kapott (fele felbontású) képek intenzitásának egymáshoz igazítása.
+ Ez histogram equalization-nel
+\begin_inset CommandInset citation
+LatexCommand cite
+key "WikiHE"
+
+\end_inset
+
+ történik meg.
+\end_layout
+
+\begin_layout Enumerate
+A 4 rész-kép felskálázása eredeti méretre.
+ Az interpolációhoz Lanczos
+\begin_inset CommandInset citation
+LatexCommand cite
+key "WikiLanc"
+
+\end_inset
+
+ módszert használom.
+\end_layout
+
+\begin_layout Enumerate
+A 4 darab, eredeti méretű kép átlagolása.
+\end_layout
+
+\begin_layout Standard
+Az adatbázisban található mintaképek alapján a Bayer minta különböző színeinek
+ kiegyenlítésére a histogram equalization megfelelő eredményt adott.
+ A 3.
+ és 4.
+ lépésben használt interpoláció és átlagolás hatására az eredmény kép már
+ egyfajta zajszűrésen átmegy, de tapasztalatok alapján a későbbi algoritmusok
+ jobb eredményt adnak, ha az előfeldolgozás végén egy Gauss simítást is
+ használok még.
+\end_layout
+
+\begin_layout Subsubsection
+Téglalap keresés
+\end_layout
+
+\begin_layout Standard
+Ez a lépés egy előszűrésnek, egy szegmentációnak tekinthető, ahol a képet
+ szétbontjuk téglalapra hasonlító, illetve nem hasonlító részekre.
+ Ettől a lépéstől azt várjuk, hogy viszonylag gyorsan tudja azokat a helyeket
+ a képen kiszűrni, ahol biztosan nem lehet tábla, így a későbbi, műveletigényese
+bb feladatoknak nagyságrendekkel kevesebb lehetséges helyet kell megvizsgálniuk,
+ így rövidíthetjük a teljes feldolgozási időt, és a biztosan rossz helyek
+ kiszűrésével a false positive detektálásokat is csökkenthetjük.
+\end_layout
+
+\begin_layout Standard
+A téglalap keresési algoritmus lényege a kiindulási alapot adó cikkben 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "RecogSpeedSigns"
+
+\end_inset
+
+ és annak hivatkozásaiban bőven ki van fejtve, itt csak az azoktól való
+ lényegesebb eltérések emelném ki:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename graphics/debug_speedLimit25_1333396016.avi_image29_10templateMatchingDetector.png
+	width 90text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Lehetséges táblák jelölése.
+ Pirossal amiket később elvetettünk, zölddel amiket valódi táblának detektáltunk.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Az algoritmus nem veszi pontosan figyelembe a a gradiensek irányát, csak
+ függőleges és vízszintes irányokat ismer.
+ Ezzel némi számítás spórolható meg, és tapasztalatok alapján ez is megfelelő
+ eredményt ad
+\end_layout
+
+\begin_layout Itemize
+A téglalap közepére leadott szavazatokat külön számolja mind a 4 irányba,
+ felfelé, lefelé, jobbra, balra, és egy előre megadott küszöbértékkel külön-külö
+n szűri a négy képet.
+ Így azok a false positive találatok csökkenthetők, amik olyan képrészletekből
+ adódnak, ahol a téglalapnak csak 1-2 oldala található meg.
+\end_layout
+
+\begin_layout Subsubsection
+Sebességkorlátozó tábla észlelés
+\end_layout
+
+\begin_layout Standard
+Ebbe a fázisba kell megtalálni a sebességkorlátozó táblákat.
+ Itt az alapul szolgáló cikkben 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "RecogSpeedSigns"
+
+\end_inset
+
+ és a többi cikkben is általában valamilyen tanuló algoritmust használnak.
+ Mivel az egyik célkitűzés az volt, hogy ilyenektől mentes legyen az algoritmus,
+ ezért a cikk által javasolt Viola-Jones
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ViolaJones"
+
+\end_inset
+
+ alapú felismerő algoritmust sem használtam.
+ 
+\end_layout
+
+\begin_layout Standard
+Első teszteket, ezen a téren talán jogosan legegyszerűbbnek nevezhető algoritmus
+sal, a template mathcinggel 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "TempMat"
+
+\end_inset
+
+ végeztem.
+ A normalizált, kereszt-korrelációs változatot használva értékelhető eredményt
+ kaptam, és a fejlesztési idő rövidsége miatt nagyon más algoritmust, vagy
+ más feature-öket nem próbáltam ki.
+ Tettem egy rövid kísérletet a SURF
+\begin_inset CommandInset citation
+LatexCommand cite
+key "SURF"
+
+\end_inset
+
+ és SIFT
+\begin_inset CommandInset citation
+LatexCommand cite
+key "SIFT"
+
+\end_inset
+
+ algoritmusokkal is, de nem működtek jól, mert nem igazán találtak jellegzetes
+ feature-t a mintaképen.
+\end_layout
+
+\begin_layout Standard
+Az mintakeresőt csak azokon a helyeken futtatom, ahol az előző pontban leírt
+ lépés lehetséges tábla helyet jelöl, így a futási sebesség jelentősen növelhető.
+ Az adott potenciális tábla középpontnál, a várt maximális táblaméretnek
+ megfelelő környezetben, különböző nagyságú mintákkal keresem a legjobb
+ egyezést.
+ Ha ez egy előre megadott küszöb felett van, akkor a jelezzük a tábla találatot,
+ és a tábla pozíciójának pontos helyét.
+\end_layout
+
+\begin_layout Subsubsection
+Korlátozás felismerés
+\end_layout
+
+\begin_layout Standard
+Az előzőekhez hasonló okok miatt itt is csak klasszikus képfeldolgozásban
+ használt módszereket alkalmaztam.
+ Mivel az észlelési részben is meglepően jó eredményt produkált a legegyszerűbb
+ algoritmus, ezért itt is megpróbálkoztam egy naiv módszerrel, a k-nearest
+ neighbors-szal 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "WikikNN"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Ahhoz hogy a pixel alapú összehasonlítás működjön, ahhoz számokat pontosan
+ meg kell találni a táblákon és a mintákat és a felismerni kívánt számokat
+ egy méretre kell hozni, és normalizálni.
+\end_layout
+
+\begin_layout Standard
+Az előző rész eredményeként egy viszonylag pontos helyét és méretét megkapjuk
+ a táblának, így a számjegyek keresése viszonylag egyszerű, és a táblán
+ belüli környezetre korlátozódik.
+ Mivel ez a terület viszonylag tiszta képfeldolgozási szempontból, ezért
+ egyszerű bináris képfeldolgozó módszerekkel jó eredmény érhető el.
+ A számok megkeresésének lépései:
+\end_layout
+
+\begin_layout Enumerate
+A tábla képének binarizálása.
+ A küszöbérték meghatározására Otsu 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Otsu"
+
+\end_inset
+
+ módszere megfelelő a mi esetünkben.
+\end_layout
+
+\begin_layout Enumerate
+Blob-ok megkeresése és azok tulajdonságainak kiszámítása.
+\end_layout
+
+\begin_layout Enumerate
+A kiszámított tulajdonságok alapján biztosan rossz blobok kiszűrése.
+ A szűrési feltételek a blob méretéből, oldalarányból és területéből adódnak
+ össze.
+\end_layout
+
+\begin_layout Enumerate
+Mivel az összes sebességkorlátozás két számjegyből áll, ezért feltételezhetjük,
+ hogy pontosan két blobot kell megtalálnunk.
+ Ha kevesebbet találunk, akkor nem találtunk számot, ha többet találunk,
+ akkor az előzetes szűrési feltételek nem voltak elegendőek.
+\end_layout
+
+\begin_layout Enumerate
+Ha több mint 2 jelölt van még, akkor kiszűrjük a legkevésbé szám-szerűeket.
+ Jelenleg azokat dobáljuk el, amik a táblán minél magasabban vannak.
+ Amint csak 2 blob marad, akkor azokat jelöljük meg mint számok.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45text%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename graphics/threshold.png
+	scale 600
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Otsu binarizálása a táblának
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45text%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename graphics/blob.png
+	scale 600
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Blobok keresése és szűrése
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Számok keresése a táblán
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ha megtaláltuk a számokat, akkor kNearest Neighbours algoritmussal megkeressük,
+ hogy melyik előre elmentett szám mintára hasonlít legjobban, és az azon
+ található szám értékét tekintjük a felismert sebességkorlátozásnak.
+ Az összehasonlítás alapját az intenzitás normalizált pixelek adják.
+\end_layout
+
+\begin_layout Subsubsection
+Egyéb korlátozások felismerése
+\end_layout
+
+\begin_layout Standard
+Az amerikai sebességkorlátozó táblákon elhelyeznek időnként egyéb korlátozásokat
+, vagy feltételeket is.
+ Ezeknek felismerése valószínűleg hasonlóan történne, mint ahogyan az alap
+ korlátozás felismerése, függetlenül attól, hogy milyen módszereket használunk
+ az előző lépések implementációjához.
+\end_layout
+
+\begin_layout Standard
+Ennek fényében, hogy megvalósítás szempontjából sok újdonságot nem mutat
+ például az 
+\begin_inset Quotes eld
+\end_inset
+
+School
+\begin_inset Quotes erd
+\end_inset
+
+ felirat megkeresése, és az idő rövidsége miatt, csak jelzés értékkel került
+ bele ennek megkeresése, ami a megtalált tábla felett, template matching
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "TempMat"
+
+\end_inset
+
+algoritmussal és egy megfelelő küszöbértékkel próbálja észlelni az iskola
+ feliratot.
+ A pozíciók számításánál érdemes lehet figyelembe venni a tábla dőlését
+ is.
+\end_layout
+
+\begin_layout Standard
+A kiegészítések felismerése közül a legnagyobb kihívást az jelentheti, mikor
+ a tábla korlátozásai csak akkor érvényesek, ha a jelzőlámpa villog.
+ Ehhez mindenképp szükséges több kép elemzése is, és a felvillanó lámpa
+ felismerésére.
+\end_layout
+
+\begin_layout Subsection
+Eredmények
+\end_layout
+
+\begin_layout Standard
+Az alábbi méréseket a LISA 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LISA"
+
+\end_inset
+
+ adatbázis 
+\begin_inset Quotes eld
+\end_inset
+
+aiua120306-1
+\begin_inset Quotes erd
+\end_inset
+
+ könyvtárán végeztem.
+ Az eredmények:
+\end_layout
+
+\begin_layout Itemize
+29 True Positive
+\end_layout
+
+\begin_layout Itemize
+1134 True Negative
+\end_layout
+
+\begin_layout Itemize
+8 False Positive
+\end_layout
+
+\begin_layout Itemize
+327 False Negative
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename graphics/debug_speedLimit30_1333395349.avi_image16_10templateMatchingDetector.png
+	width 90text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Egy tipikus tábla tévesztés, mikor a tábla kerete beleolvad a környezetébe
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ami a következő teljesítmény mutatókat 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ClassPerform"
+
+\end_inset
+
+ adja:
+\end_layout
+
+\begin_layout Itemize
+Recall: 0.0814607 
+\end_layout
+
+\begin_layout Itemize
+Precision: 0.783784
+\end_layout
+
+\begin_layout Itemize
+F1 score: 0.147583
+\end_layout
+
+\begin_layout Standard
+Az eredmények első ránézésre azt mutatják, hogy precision érték viszonylag
+ jó, de a recall nagyon rossz.
+ Ezek az eredmények azonban nem teljesen valósak, mert egyrészt a LISA annotáció
+s fájlja nem teljes, például van olyan False Positive minta, ahol valójában
+ tényleg van sebességkorlátozó tábla, csak az annotációs fájlba ezt nem
+ jelezték, hanem egy másik, a képen szereplő táblát.
+ A false negative szám még inkább távol esik a gyakorlati teljesítménytől,
+ mert nincs figyelembe véve, hogy egy olyan kép-szekvencián, amin ugyan
+ az a tábla van, ahogyan az autó halad az úton, akkor míg távol van a tábla,
+ akkor az algoritmus nem ismeri fel, de ahogy közelebb ér a kocsihoz, akkor
+ már igen.
+ A távoli táblák jelenlegi kiértékeléskor a false negativ csoportba kerülnek.
+\end_layout
+
+\begin_layout Section
+Implementáció
+\end_layout
+
+\begin_layout Subsection
+Fejlesztési környezet
+\end_layout
+
+\begin_layout Standard
+A teljes forráskód és felhasznált források és készült dokumentációk mind
+ a git verziókövetővel vannak kezelve és a GitHub oldalon tárolva a https://gith
+ub.com/HunBug/SpeedLimitSignRecogniser cím alatt.
+\end_layout
+
+\begin_layout Standard
+A fejlesztés C++ nyelven történt, Eclipse fejlesztőkörnyezetben és MinGW
+ fordítóval Windows 10-es és 7-es operációs rendszeren.
+ A felhasznált programozási könyvtárak:
+\end_layout
+
+\begin_layout Itemize
+Boost 1.59
+\end_layout
+
+\begin_layout Itemize
+Opencv 3.0
+\end_layout
+
+\begin_layout Standard
+Fejlesztés alatt több gond is akadt az Eclipse IDE-vel, elég gyakran futott
+ exception-be, és jelentette a fejlesztőknek.
+ Windows 10 alatt, debuggolás közben rendszeresen lefagyott a teljes operációs
+ rendszer.
+ A három hetes fejlesztés idő alatt a MinGW fordító 3 bug-jába is sikerült
+ belefutni, amit különböző kerülő módszerekkel lehetett csak orvosolni.
+\end_layout
+
+\begin_layout Subsection
+Program szerkezet
+\end_layout
+
+\begin_layout Standard
+A program egészére jellemző, hogy a különböző feldolgozási lépéseket, amiket
+ az előző fejezetben külön szekciókban tárgyaltam, azok a program kódban
+ külön-külön interfész osztályt kaptak.
+ Ez elsőre talán túlzásnak tűnhet egy prototípus programnál, de eddigi tapasztal
+ataim szerint igazából pont ebben a fejlesztési stádiumban igazán kifizetődő.
+ Ellentétben azzal, mikor egy termék már kezd a végleges változathoz közeledni,
+ akkor viszonylag keveset változik már a szerkezete a programnak, de a kutatási
+ időszakban rengeteg kombinációt jó kipróbálni, és az automatikus (paraméter)
+ optimalizáló és tesztelő rendszerek is könnyebben felépíthetőek, hogy könnyen
+ változtatható a processing flow, akár futási időben is.
+\end_layout
+
+\begin_layout Subsubsection
+SpeedLimitSignRecogniser
+\end_layout
+
+\begin_layout Standard
+A main függvény helye, itt történik a program paraméterek beolvasása, majd
+ a feldolgozás indítása.
+\end_layout
+
+\begin_layout Subsubsection
+Recogniser
+\end_layout
+
+\begin_layout Standard
+Jelenleg ez fogja össze a feldolgozási folyamatot, és ez végzi el a eredmények
+ kiértékelését is az annotációs fájl alapján.
+\end_layout
+
+\begin_layout Subsubsection
+FileSource
+\end_layout
+
+\begin_layout Standard
+Egységes felület a fájlok, könyvtárak beolvasására.
+\end_layout
+
+\begin_layout Subsubsection
+SourceNormaliser
+\end_layout
+
+\begin_layout Standard
+Az ISourceNormaliser interfészt megvalósító osztályoknak a feladata, hogy
+ a különböző forrásból származó különböző tulajdonságokkal bíró képeket
+ egységes formára hozzák, így a különbségekkel az algoritmusnak továbbiakban
+ nem kell foglalkozni.
+ a DemosaicingNormaliser osztály valósítja meg a 
+\begin_inset Quotes eld
+\end_inset
+
+Előfeldolgozás
+\begin_inset Quotes erd
+\end_inset
+
+-ban leírtakat.
+\end_layout
+
+\begin_layout Subsubsection
+Segmentation
+\end_layout
+
+\begin_layout Standard
+Szegmentáció, ami kizárhatja a biztosan 
+\begin_inset Quotes pld
+\end_inset
+
+nem tábla
+\begin_inset Quotes prd
+\end_inset
+
+helyeket.
+ Jelenleg nincs rendes megvalósítása, de például kivitelezhető lenne egy
+ szín alapú előszűrés is.
+\end_layout
+
+\begin_layout Subsubsection
+CandidateFinder
+\end_layout
+
+\begin_layout Standard
+Ezek az osztályok már egy pontosabb előszűrést végeznek.
+ Ennek visszatérési értéke egy 
+\begin_inset Quotes eld
+\end_inset
+
+vote-map
+\begin_inset Quotes erd
+\end_inset
+
+, ami a képen található pixelekhez tartózó találati szavazatokat tárolják.
+ A 
+\begin_inset Quotes eld
+\end_inset
+
+Téglalap keresés
+\begin_inset Quotes erd
+\end_inset
+
+ szekció megvalósításai.
+\end_layout
+
+\begin_layout Subsubsection
+Detector
+\end_layout
+
+\begin_layout Standard
+Az eddigi előfeldolgozások által megjelölt helyen végez pontos tábla keresést.
+ Visszatér a talált táblák pontos helyével és méretével.
+ A 
+\begin_inset Quotes eld
+\end_inset
+
+Sebességkorlátozó tábla észlelés
+\begin_inset Quotes erd
+\end_inset
+
+ szekció megvalósítása.
+\end_layout
+
+\begin_layout Subsubsection
+Recogniser
+\end_layout
+
+\begin_layout Standard
+A Detector által megjelölt ROI-n belül keres számokat, és adja meg a korlátozás
+ pontos mértékét.
+ Jelenleg a kezdetleges 
+\begin_inset Quotes eld
+\end_inset
+
+School
+\begin_inset Quotes erd
+\end_inset
+
+ feliratkereső is itt van implementálva.
+ A 
+\begin_inset Quotes eld
+\end_inset
+
+Korlátozás felismerés
+\begin_inset Quotes erd
+\end_inset
+
+ szekció megvalósítása.
+\end_layout
+
+\begin_layout Subsubsection
+FeatureExtractor
+\end_layout
+
+\begin_layout Standard
+A osztályozó algoritmusokhoz használt feature készítő osztályok interfésze.
+ Így egyszerűen változtatható mind betanítás és osztályozás közben a képekből
+ kinyer feature-ök.
+\end_layout
+
+\begin_layout Subsubsection
+Eredményekkel kapcsolatos osztályok
+\end_layout
+
+\begin_layout Standard
+RecognitionResult osztályba lehet tárolni a mért vagy elvárt mérési eredményeket.
+ Az Evaluator osztály képes beolvasni az annotációs fájlok tartalmát, gyűjteni
+ a mérési információkat, majd a mérés teljesítményt ezek alapján értékelni.
+\end_layout
+
+\begin_layout Subsubsection
+Segédosztályok
+\end_layout
+
+\begin_layout Standard
+ImagingTools tartalmaz néhány, több helyen is használt egyszerű eszközt,
+ ami a képfeldolgozási algoritmusok közben szükségesek lehettek.
+ DebugTools-ban a debuggoláshoz használt eszközök találhatóak.
+\end_layout
+
+\begin_layout Subsection
+Program használata
+\end_layout
+
+\begin_layout Standard
+A program egy parancssori alkalmazás.
+ Mivel operációs rendszer függő dolgok nem lettek használva az implementáció
+ során, ezért elvileg különböző operációs rendszerekre is lefordíthatónak
+ kell lennie.
+ Eddig csak Windows 7/10 rendszereken lett kipróbálva.
+\end_layout
+
+\begin_layout Standard
+A parancssori argumentumok a következőek:
+\end_layout
+
+\begin_layout Itemize
+--help, megmutatja a program használatához a segítséget.
+\end_layout
+
+\begin_layout Itemize
+--f, az utána megadott képfájl feldolgozása.
+ Nem használható együtt a --d kapcsolóval
+\end_layout
+
+\begin_layout Itemize
+--d, az utána megadott könyvtárban található összes 
+\begin_inset Quotes pld
+\end_inset
+
+.png
+\begin_inset Quotes prd
+\end_inset
+
+ képfájlra lefuttatja a feldolgozást.
+ Nem használható együtt a --f kapcsolóval
+\end_layout
+
+\begin_layout Itemize
+--a, az annotációs fájlt lehet megadni kiértékeléshez
+\end_layout
+
+\begin_layout Itemize
+--force, kikényszeríti, hogy miden esetben számolja újra az eredményeket
+ miden képhez.
+ Ha ez nincs megadva, akkor megpróbálja betölteni a már elmentett eredményeket.
+ Megszakadt könyvtár-feldolgozásnál vagy kiértékelési feladatoknál lehet
+ hasznos.
+\end_layout
+
+\begin_layout Itemize
+--debug, debug képek mentése
+\end_layout
+
+\begin_layout Itemize
+--separate, az eredmény képeket és adatokat szétválogatja a TruePositive,
+ TrueNegative, FalseNegative, FalsePositive könyvtárakba
+\end_layout
+
+\begin_layout Standard
+Egy tipikus használata:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SpeedLimitSignRecogniser.exe --d testFolder --a  testFolder
+\backslash
+frameAnnotations.csv --debug --separate
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename graphics/Clipboard_data.png
+	width 60text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Program futás közben
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Összegzés
+\end_layout
+
+\begin_layout Standard
+Viszonylag kevés fejlesztési idő alatt sikerült egy olyan demó programot
+ készíteni, amiben demonstrálni lehetett alapvető programozási technikáktól
+ kezdve a magas szintű képfeldolgozási könyvtárak használatán át egészen
+ az alacsony szintű képfeldolgozó algoritmusok implementálásáig.
+ Mivel ezeket a célokat nagyjából egyenlő súllyal vettem figyelembe, így
+ egyik területen sem kapott kizárólagos figyelmet, így mindegyik részén
+ lehetett volna jobb eredményeket elérni, ha csak arra részre lett volna
+ minden energia fordítva.
+ Ennek ellenére a program értékelhető felismerési eredményeket produkál,
+ és továbbfejlesztése is könnyen megtehető, hisz kezdetektől fogva figyelembe
+ lett véve ennek lehetősége.
+\end_layout
+
+\begin_layout Standard
+Következő lépésben a egyes kódrészletek refaktorálása és tisztítása történik
+ meg, hogy a további fejlesztések már teljesen letisztult kódbázisra épüljön.
+\end_layout
+
+\begin_layout Standard
+Képfeldolgozás terén, a későbbiekben is használhatónak vélt részek, mint
+ például a téglalap kereső algoritmus, optimalizálni kell mind minőség,
+ mind gyorsaság szempontjából.
+ Az eddig nem használt módszerek kipróbálása, mint például a cikkben 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "RecogSpeedSigns"
+
+\end_inset
+
+javasolt Viola Jones 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ViolaJones"
+
+\end_inset
+
+ a felismerés pontossága és a sebesség javulása érdekében.
+ Egyéb ötletek is felmerültek fejlesztés közben, mint például Super resolution,
+ color segmantation, sign tracking az előfeldolgozás vagy egy validációs
+ lépés során.
+ Egyes esetekben a téglalap kereső nem működik, ha a táblakeret nem látható
+ elég jól, és nem produkál megfelelő nagyságú gradienseket, ezekre az esetekre
+ is kell megfelelő megoldást találni, például a lehetséges helyek keresésénél
+ is a 
+\begin_inset Quotes eld
+\end_inset
+
+Speed limit
+\begin_inset Quotes erd
+\end_inset
+
+ szöveg keresése.
+\end_layout
+
+\begin_layout Standard
+A kiegészítő korlátozások felismerését is implementálni kell.
+\end_layout
+
+\begin_layout Standard
+Ezen kívül néhány segédeszköz fejlesztése is szükséges a hatékonyabb teszteléshe
+z és kiértékeléshez.
+ Ehhez az annotációs fájlokat is pontosítani kell, és megoldani, hogy egy
+ videó szekvenciából származó képeket 
+\begin_inset Quotes eld
+\end_inset
+
+egy táblaként
+\begin_inset Quotes erd
+\end_inset
+
+ kezelje a kiértékelés.
+ Teszteket egyéb adatbázisokon is érdemes lenne elvégezni.
+\end_layout
+
+\begin_layout Standard
+Az algoritmust érdemes lenne átírni úgy, hogy az kihasználhassa a több szálú
+ feldolgozást, illetve a GPU számítási teljesítményét.
+ Mindkettő bizonyos szintig könnyen megtehető most is, hiszen jelenleg a
+ különböző fázisok jól szeparáltak, így a pipeline egyes fázisai az egymás
+ követő képeken egyszerre elvégezhetőek, illetve OpenCv maga is támogatja
+ az OpenCL számításokat, ennek kihasználása nagyon kevés kódmódosítással
+ megtehető.
+ A saját, alacsony szinten megírt képfeldolgozó algoritmusokat is érdemes
+ átültetni OpenCL-re, ha ezzel jelentős teljesítményjavulás érhető el a
+ teljes feldolgozási folyamatra nézve.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "RecogSpeedSigns"
+
+\end_inset
+
+Christoph Gustav Keller , Christoph Sprunk , Claus Bahlmann , Jan Giebel3
+ and Gregory Baratoff, 
+\begin_inset Quotes eld
+\end_inset
+
+Real-time Recognition of U.S.
+ Speed Signs
+\begin_inset Quotes erd
+\end_inset
+
+, Intelligent Vehicles Symposium, 2008 
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "LISA"
+
+\end_inset
+
+LISA Traffic Sign Dataset , Laboratory for intelligent & safe automobiles,
+ http://cvrr.ucsd.edu/LISA/lisa-traffic-sign-dataset.html
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "WikiHE"
+
+\end_inset
+
+Wikipedia, 
+\begin_inset Quotes eld
+\end_inset
+
+Histogram equalization
+\begin_inset Quotes erd
+\end_inset
+
+, https://en.wikipedia.org/wiki/Histogram_equalization
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "WikiLanc"
+
+\end_inset
+
+Wikipedia, 
+\begin_inset Quotes eld
+\end_inset
+
+Lanczos resampling
+\begin_inset Quotes erd
+\end_inset
+
+, https://en.wikipedia.org/wiki/Lanczos_resampling
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "ViolaJones"
+
+\end_inset
+
+P.
+ Viola and M.
+ Jones, 
+\begin_inset Quotes eld
+\end_inset
+
+Robust real-time object detection
+\begin_inset Quotes erd
+\end_inset
+
+, Technical report, Compaq Cambridge Research Laboratory, Feb.
+ 2001.
+ CRL 2001/1.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "TempMat"
+
+\end_inset
+
+R.
+ Brunelli, 
+\begin_inset Quotes eld
+\end_inset
+
+Template Matching Techniques in Computer Vision: Theory and Practice
+\begin_inset Quotes erd
+\end_inset
+
+, Wiley, ISBN 978-0-470-51706-2, 2009
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "WikikNN"
+
+\end_inset
+
+Wikipedia, 
+\begin_inset Quotes eld
+\end_inset
+
+k-nearest neighbors algorithm
+\begin_inset Quotes erd
+\end_inset
+
+, https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "Otsu"
+
+\end_inset
+
+Nobuyuki Otsu, "A threshold selection method from gray-level histograms".
+ IEEE Trans.
+ Sys., Man., Cyber.
+ 9 (1): 62–66.
+ doi:10.1109/TSMC.1979.4310076., 1979
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "SIFT"
+
+\end_inset
+
+Lowe D G, 
+\begin_inset Quotes eld
+\end_inset
+
+Distinctive image features from scale-invariant keypoints
+\begin_inset Quotes erd
+\end_inset
+
+.
+ International journal of computer vision, 60(2): 91-110, 2004
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "SURF"
+
+\end_inset
+
+Bay H, Ess A, Tuytelaars T, et al., 
+\begin_inset Quotes eld
+\end_inset
+
+Speeded-up robust features (SURF)
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Computer vision and image understanding, 110(3): 346-359, 2008
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "ClassPerform"
+
+\end_inset
+
+Wikipedia, F1 score, https://en.wikipedia.org/wiki/F1_score
+\end_layout
+
+\end_body
+\end_document
